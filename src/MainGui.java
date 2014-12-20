@@ -230,6 +230,8 @@ public class MainGui {
 				btn.setText(names.get(roomNumber));
 			}
 			
+			tdL.setPreferredSize(new Dimension(20, 20));
+			
 			btn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if (!tdL.isEnabled()) {
