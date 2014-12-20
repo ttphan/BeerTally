@@ -230,7 +230,8 @@ public class MainGui {
 				btn.setText(names.get(roomNumber));
 			}
 			
-			tdL.setPreferredSize(new Dimension(20, 20));
+			tdL.setPreferredSize(new Dimension(30, 20));
+			ttL.setPreferredSize(new Dimension(30, 20));
 			
 			btn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -1031,8 +1032,9 @@ public class MainGui {
 			}
 			taHistory.append(text);
 			if (entry.getValue() == 7) {
-				taHistory.append("Waarvoor hulde!\n");
+				taHistory.append("                       Waarvoor hulde!\n");
 			}
 		}
+		taHistory.append("---------------------------------------------------------\n");
 	}
 }
