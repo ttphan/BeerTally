@@ -5,7 +5,6 @@
  * Parses the quotes from text file.
  */
 
-
 import java.io.*;
 import java.util.ArrayList;
 

@@ -10,10 +10,10 @@ import java.awt.*;
 import javax.swing.*;
 
 import java.util.Date;
-import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.awt.event.ActionListener;
@@ -189,6 +189,9 @@ public class MainGui implements ActionListener {
 		
 		// Create and initialize new list panel
 		initializeNewListPanel();
+		
+		// Create and initialize password change panel
+		initializeNewPassPanel();
 	}
 	
 	/**
@@ -239,6 +242,7 @@ public class MainGui implements ActionListener {
 				btn.setText(names.get(roomNumber));
 			}
 			
+			// Prevents the labels from fucking up the layout.
 			tdL.setPreferredSize(new Dimension(30, 20));
 			ttL.setPreferredSize(new Dimension(30, 20));
 			
@@ -879,24 +883,35 @@ public class MainGui implements ActionListener {
 		pPassword = new JPanel();
 		pCardManager.add(pPassword, "password");
 		
+		JLabel lWrongPass = new JLabel("Onjuist wachtwoord!");
+		lWrongPass.setForeground(Color.RED);
+		lWrongPass.setVisible(false);
+		GridBagConstraints gbc_lWrongPass = new GridBagConstraints();
+		gbc_lWrongPass.insets = new Insets(10, 0, 0, 0);
+		gbc_lWrongPass.gridx = 1;
+		gbc_lWrongPass.gridy = 2;
+		
+		
 		GridBagLayout gbl_pPassword = new GridBagLayout();
 		pPassword.setLayout(gbl_pPassword);
 		
 		JLabel lPassword = new JLabel("Wachtwoord");
-		GridBagConstraints c = new GridBagConstraints();
-		c.insets = new Insets(0, 0, 5, 5);
-		pPassword.add(lPassword, c);
+		GridBagConstraints gbc_lPassword = new GridBagConstraints();
+		gbc_lPassword.insets = new Insets(0, 0, 5, 5);
+		pPassword.add(lPassword, gbc_lPassword);
 		
 		passwordField = new JPasswordField(10);
 		passwordField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-					if (checkPassword()) {			
+					if (Security.checkPassword(passwordField.getPassword())) {			
 						cardLayout.show(pCardManager, "options");
+						lWrongPass.setVisible(false);
 					}
 					else {
 						passwordField.requestFocus();
+						lWrongPass.setVisible(true);
 					}
 					
 					passwordField.setText("");
@@ -906,13 +921,14 @@ public class MainGui implements ActionListener {
 				}
 			}
 		});
-		GridBagConstraints c2 = new GridBagConstraints();
-		c2.insets = new Insets(0, 0, 5, 0);
-		pPassword.add(passwordField, c2);
+		GridBagConstraints gbc_passwordField = new GridBagConstraints();
+		gbc_passwordField.insets = new Insets(0, 0, 5, 0);
+		pPassword.add(passwordField, gbc_passwordField);
 		
 		JButton bCancelPass = new JButton("Terug");
 		bCancelPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				lWrongPass.setVisible(false);
 				cardLayout.show(pCardManager, "main");
 			}
 		});
@@ -925,11 +941,13 @@ public class MainGui implements ActionListener {
 		JButton bEnterPass = new JButton("OK");
 		bEnterPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (checkPassword()) {			
+				if (Security.checkPassword(passwordField.getPassword())) {			
 					cardLayout.show(pCardManager, "options");
+					lWrongPass.setVisible(false);
 				}
 				else {
-					passwordField.requestFocus();				
+					passwordField.requestFocus();
+					lWrongPass.setVisible(true);
 				}
 				
 				passwordField.setText("");
@@ -939,6 +957,8 @@ public class MainGui implements ActionListener {
 		gbc_bEnterPass.gridx = 1;
 		gbc_bEnterPass.gridy = 1;
 		pPassword.add(bEnterPass, gbc_bEnterPass);
+		
+		pPassword.add(lWrongPass, gbc_lWrongPass);
 		
 		pPassword.addComponentListener(new ComponentAdapter() {
 			@Override
@@ -1001,6 +1021,11 @@ public class MainGui implements ActionListener {
 		pOptions.add(bTempTally, gbc_bTempTally);
 				
 		JButton bNewPassword = new JButton("Nieuw wachtwoord");
+		bNewPassword.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "newPass");
+			}
+		});	
 		bNewPassword.setPreferredSize(new Dimension(200, 100));
 		GridBagConstraints gbc_bNewPassword = new GridBagConstraints();
 		gbc_bNewPassword.fill = GridBagConstraints.HORIZONTAL;
@@ -1071,38 +1096,199 @@ public class MainGui implements ActionListener {
 		
 		pNewListConfirm.add(bNewListYes);
 		pNewListConfirm.add(bNewListNo);
-		
 	}
 	
 	/**
-	 * Checks password
-	 * @return result	True if password matches
+	 * Initialize new password panel
 	 */
-	private boolean checkPassword() {
-		boolean result = false;
-		try {					
-			byte[] pass = new String(passwordField.getPassword()).getBytes("UTF-8");
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(pass);
-			byte[] messageDigest = md.digest();
-			
-			StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i<messageDigest.length; i++) {
-                String hex = Integer.toHexString(0xFF & messageDigest[i]);
-                if (hex.length() == 1)
-                    hexString.append('0');
-
-                hexString.append(hex);
-            }
-			
-           	if (DBHandler.checkPassword(hexString.toString())) {
-           		result = true;
-           	}
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
+	private void initializeNewPassPanel() {
+		JPanel pNewPass = new JPanel();
+		pCardManager.add(pNewPass, "newPass");
+		GridBagLayout gbl_pNewPass = new GridBagLayout();
+		pNewPass.setLayout(gbl_pNewPass);
 		
-		return result;
+		JPanel pNewPassSub = new JPanel();
+		GridBagLayout gbl_pNewPassSub = new GridBagLayout();
+		pNewPassSub.setLayout(gbl_pNewPassSub);
+		GridBagConstraints gbc_pNewPassSub = new GridBagConstraints();
+		gbc_pNewPassSub.gridx = 0;
+		gbc_pNewPassSub.gridy = 0;
+		pNewPass.add(pNewPassSub, gbc_pNewPassSub);
+		
+		
+		JLabel lNewPass = new JLabel("Nieuw wachtwoord");
+		GridBagConstraints gbc_lNewPass = new GridBagConstraints();
+		gbc_lNewPass.anchor = GridBagConstraints.EAST;
+		gbc_lNewPass.insets = new Insets(0, 0, 5, 10);
+		gbc_lNewPass.gridx = 0;
+		gbc_lNewPass.gridy = 0;
+		pNewPassSub.add(lNewPass, gbc_lNewPass);
+		
+		JPasswordField newPass = new JPasswordField(10);
+		JPasswordField newPassConfirm = new JPasswordField(10);
+		
+		JLabel lNotMatching = new JLabel("Wachtwoorden zijn niet gelijk aan elkaar!");
+		lNotMatching.setForeground(Color.RED);
+		lNotMatching.setVisible(false);
+		JLabel lInvalidSize = new JLabel("Wachtwoord moet tussen de 4 en 16 karakters zijn");
+		lInvalidSize.setForeground(Color.RED);
+		lInvalidSize.setVisible(false);
+		
+		newPass.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					lInvalidSize.setVisible(false);
+					lNotMatching.setVisible(false);
+					cardLayout.show(pCardManager, "options");
+				}
+			}
+		});
+		
+		GridBagConstraints gbc_newPass = new GridBagConstraints();
+		gbc_newPass.insets = new Insets(0, 0, 5, 0);
+		gbc_newPass.gridx = 1;
+		gbc_newPass.gridy = 0;
+		pNewPassSub.add(newPass, gbc_newPass);
+		
+		JLabel lNewPassConfirm = new JLabel("Herhaal nieuw wachtwoord");
+		GridBagConstraints gbc_lNewPassConfirm = new GridBagConstraints();
+		gbc_lNewPassConfirm.anchor = GridBagConstraints.EAST;
+		gbc_lNewPassConfirm.insets = new Insets(0, 0, 5, 10);
+		gbc_lNewPassConfirm.gridx = 0;
+		gbc_lNewPassConfirm.gridy = 1;
+		pNewPassSub.add(lNewPassConfirm, gbc_lNewPassConfirm);
+			
+		newPassConfirm.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {	
+					lInvalidSize.setVisible(false);
+					lNotMatching.setVisible(false);
+					
+					if (Arrays.equals(newPass.getPassword(), newPassConfirm.getPassword())) {
+						if(newPass.getPassword().length > 4 && newPass.getPassword().length < 16 ) {
+							Security.newPassword(newPass.getPassword());
+							newPassConfirm();
+						}
+						else {
+							lInvalidSize.setVisible(true);
+						}
+					}
+					else {
+						lNotMatching.setVisible(true);
+					}
+
+					newPass.requestFocus();
+					newPass.setText("");
+					newPassConfirm.setText("");
+				}
+				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					lInvalidSize.setVisible(false);
+					lNotMatching.setVisible(false);
+					cardLayout.show(pCardManager, "options");
+				}
+			}
+		});
+		GridBagConstraints gbc_newPassConfirm = new GridBagConstraints();
+		gbc_newPassConfirm.insets = new Insets(0, 0, 5, 0);
+		gbc_newPassConfirm.gridx = 1;
+		gbc_newPassConfirm.gridy = 1;
+		pNewPassSub.add(newPassConfirm, gbc_newPassConfirm);
+		
+		JButton bCancelNewPass = new JButton("Terug");
+		bCancelNewPass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				lInvalidSize.setVisible(false);
+				lNotMatching.setVisible(false);
+				cardLayout.show(pCardManager, "options");
+			}
+		});
+		GridBagConstraints gbc_bCancelNewPass = new GridBagConstraints();
+		gbc_bCancelNewPass.insets = new Insets(0, 0, 0, 5);
+		gbc_bCancelNewPass.gridx = 0;
+		gbc_bCancelNewPass.gridy = 2;
+		pNewPassSub.add(bCancelNewPass, gbc_bCancelNewPass);
+		
+		JButton bEnterNewPass = new JButton("OK");
+		bEnterNewPass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				lInvalidSize.setVisible(false);
+				lNotMatching.setVisible(false);
+				
+				if (Arrays.equals(newPass.getPassword(), newPassConfirm.getPassword())) {
+					if(newPass.getPassword().length > 4 && newPass.getPassword().length < 16 ) {
+						Security.newPassword(newPass.getPassword());
+					}
+					else {
+						lInvalidSize.setVisible(true);
+					}
+				}
+				else {
+					lNotMatching.setVisible(true);
+				}
+
+				newPass.requestFocus();
+				newPass.setText("");
+				newPassConfirm.setText("");
+			}
+		});
+		GridBagConstraints gbc_bEnterNewPass = new GridBagConstraints();
+		gbc_bEnterNewPass.gridx = 1;
+		gbc_bEnterNewPass.gridy = 2;
+		pNewPassSub.add(bEnterNewPass, gbc_bEnterNewPass);
+		
+		
+		GridBagConstraints gbc_lNotMatching = new GridBagConstraints();
+		gbc_lNotMatching.insets = new Insets(0, 0, 5, 0);
+		gbc_lNotMatching.gridx = 0;
+		gbc_lNotMatching.gridy = 1;
+		pNewPass.add(lNotMatching, gbc_lNotMatching);
+		
+		GridBagConstraints gbc_lInvalidSize = new GridBagConstraints();
+		gbc_lInvalidSize.insets = new Insets(0, 0, 5, 0);
+		gbc_lInvalidSize.gridx = 0;
+		gbc_lInvalidSize.gridy = 2;
+		pNewPass.add(lInvalidSize, gbc_lInvalidSize);
+		
+		pNewPass.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent e) {
+				newPass.requestFocus();
+			}
+		});
+	}
+	
+	/**
+	 * New password confirmation panel
+	 */
+	private void newPassConfirm() {
+		JPanel pNewPassConfirm = new JPanel();
+		GridBagLayout gbl_pNewPassConfirm = new GridBagLayout();
+		pNewPassConfirm.setLayout(gbl_pNewPassConfirm);
+		pCardManager.add(pNewPassConfirm, "newPassConfirm");
+		
+		JLabel lNewPassSuccessHeader = new JLabel("Het nieuwe wachtwoord is aangemaakt!");
+		lNewPassSuccessHeader.setFont(lNewPassSuccessHeader.getFont().deriveFont(24f));
+		GridBagConstraints gbc_lNewPassSuccessHeader = new GridBagConstraints();
+		gbc_lNewPassSuccessHeader.gridx = 0;
+		gbc_lNewPassSuccessHeader.gridy = 0;
+		pNewPassConfirm.add(lNewPassSuccessHeader, gbc_lNewPassSuccessHeader);
+		
+		JButton pNewPassBack = new JButton("Terug");
+		pNewPassBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "options");
+			}
+		});
+		pNewPassBack.setPreferredSize(new Dimension(300, 100));
+		GridBagConstraints gbc_pNewPassBack = new GridBagConstraints();
+		gbc_pNewPassBack.insets = new Insets(10, 0, 0, 0);
+		gbc_pNewPassBack.gridx = 0;
+		gbc_pNewPassBack.gridy = 1;
+		pNewPassConfirm.add(pNewPassBack, gbc_pNewPassBack);
+		
+		cardLayout.show(pCardManager, "newPassConfirm");
 	}
 	
 	
@@ -1228,7 +1414,6 @@ public class MainGui implements ActionListener {
 			pNewListSuccess.add(pNewListBack, gbc_pNewListBack);
 			
 			cardLayout.show(pCardManager, "newListSuccess");
-		}
-		
+		}		
 	}
 }

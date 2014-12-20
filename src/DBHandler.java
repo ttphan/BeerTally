@@ -362,6 +362,9 @@ public class DBHandler {
 		return result;
 	}
 	
+	/**
+	 * Creates a new list.
+	 */
 	public static void newList() {
 		Connection c = getConnection();
 		Statement stmt = null;
@@ -370,7 +373,7 @@ public class DBHandler {
 			stmt = c.createStatement();
 			String sql = "INSERT INTO List DEFAULT VALUES;";
 			
-			stmt.execute(sql);
+			stmt.executeUpdate(sql);
 			
 			c.commit();
 			
@@ -381,5 +384,32 @@ public class DBHandler {
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * Inserts new password in the database.
+	 * @param hex	The encrypted password
+	 */
+	public static void newPassword(String hex) {
+		Connection c = getConnection();
+		Statement stmt = null;
+		
+		// Sanity check, to ensure that the string is a hexadecimal.
+		if (hex.matches("-?[0-9a-fA-F]+")) {
+			try {
+				stmt = c.createStatement();
+				String sql = "UPDATE Password SET pass='" + hex + "';";
+				
+				stmt.executeUpdate(sql);
+				
+				c.commit();
+				
+				stmt.close();
+				c.close();
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
 }
