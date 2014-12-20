@@ -109,8 +109,8 @@ public class DBHandler {
 		
 		try {
 			stmt = c.createStatement();
-			String sql = "SELECT rowId FROM Roommate ";
-			sql += 			"WHERE active == 1 AND roomNumber == " + roomNumber + ";";
+			String sql = "SELECT rowId FROM Roommate "
+					+ "WHERE active == 1 AND roomNumber == " + roomNumber + ";";
 			
 			ResultSet rs = stmt.executeQuery(sql);
 			
@@ -197,13 +197,13 @@ public class DBHandler {
 		
 		try {
 			stmt = c.createStatement();
-			String sql = "UPDATE Roommate SET active = 0 ";
-			sql += 			"WHERE active == 1 AND roomNumber == " + roomNumber + ";";
+			String sql = "UPDATE Roommate SET active = 0 "
+					+ "WHERE active == 1 AND roomNumber == " + roomNumber + ";";
 			
 			stmt.executeUpdate(sql);
 			
-			sql = "INSERT INTO Roommate (roomNumber, name) ";
-			sql += "VALUES (" + roomNumber + ", '" + name + "');";
+			sql = "INSERT INTO Roommate (roomNumber, name) "
+					+ "VALUES (" + roomNumber + ", '" + name + "');";
 			
 			stmt.executeUpdate(sql);
 			
@@ -232,8 +232,8 @@ public class DBHandler {
 			int listId = getLatestListId();
 			
 			stmt = c.createStatement();
-			String sql = "SELECT COUNT(" + roommateId + ") AS total FROM Tally ";
-			sql += "WHERE listId == " + listId + " AND roommateId == " + roommateId + ";";
+			String sql = "SELECT COUNT(" + roommateId + ") AS total FROM Tally "
+					+ "WHERE listId == " + listId + " AND roommateId == " + roommateId + ";";
 			
 			ResultSet rs = stmt.executeQuery(sql);
 			
@@ -264,14 +264,15 @@ public class DBHandler {
 		try {		
 			stmt = c.createStatement();
 			
-			String sql = "SELECT Roommate.rowid as rowid, count(Tally.roommateId) AS total ";
-			sql += "FROM Roommate LEFT JOIN Tally ON Roommate.rowid = Tally.roommateId ";
-			sql += "WHERE Tally.listId = " + listId + " GROUP BY rowid;";
+			String sql = "SELECT Roommate.roomNumber as roomNumber, Roommate.rowid as rowid, "
+					+ "count(Tally.roommateId) AS total FROM Roommate LEFT JOIN Tally "
+					+ "ON Roommate.rowid = Tally.roommateId WHERE Tally.listId = " 
+					+ listId + " GROUP BY rowid;";
 						
 			ResultSet rs = stmt.executeQuery(sql);
 
 			while (rs.next()) {
-				result.put(rs.getInt("rowid"), rs.getInt("total"));
+				result.put(rs.getInt("roomNumber"), rs.getInt("total"));
 			}
 			
 			stmt.close();
@@ -300,8 +301,8 @@ public class DBHandler {
 				int amount = entry.getValue();
 				int listId = getLatestListId();
 										
-				String sql = "INSERT INTO Tally (roommateId, listId) ";
-				sql += "VALUES (" + roommateId + ", " + listId + ");";
+				String sql = "INSERT INTO Tally (roommateId, listId) "
+						+ "VALUES (" + roommateId + ", " + listId + ");";
 				
 				for (int j = 0; j < amount; j++) {
 					stmt.executeUpdate(sql);
@@ -329,6 +330,11 @@ public class DBHandler {
 		return result;
 	}
 	
+	/**
+	 * Checks if the given hex string matches the stored hashed password.
+	 * @param hex		The hashed string
+	 * @return result	True if the string matches
+	 */
 	public static boolean checkPassword(String hex) {
 		boolean result = false;
 		Connection c = getConnection();

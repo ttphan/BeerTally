@@ -33,10 +33,10 @@ public class ExcelHandler {
 			
 			for (Entry<Integer, Integer> entry : tallies.entrySet()) {
 				Row row = shTallies.createRow(index);
-				int roommateId = entry.getKey();
+				int roomNumber = entry.getKey();
 				int tallyCount = entry.getValue();
 				
-				row.createCell(0).setCellValue(roommates.get(roommateId));
+				row.createCell(0).setCellValue(roommates.get(roomNumber));
 				row.createCell(1).setCellValue(tallyCount);
 				index++;
 			}
