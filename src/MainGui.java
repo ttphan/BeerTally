@@ -9,14 +9,19 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Date;
+import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 
 public class MainGui {
@@ -24,20 +29,43 @@ public class MainGui {
 	private JFrame frame;
 	
 	/**
+	 * Main split panel
+	 */
+	private JSplitPane spMain;
+	
+	/**
 	 * Tally button panel, containing the roommates and tally count.
 	 */
 	private JPanel pTallyButtons;
 	
 	/**
-	 * Left panel, containing the tally buttons and scrolling text.
+	 * Card manager panel, handles the visibility of the panels.
 	 */
+	private JPanel pCardManager;
+	
+	/**
+	 * Card layout, used to switch between panels
+	 */
+	private CardLayout cardLayout;
+	
+	/**
+	 * Password panel
+	 */
+	private JPanel pPassword;
+	
+	/**
+	 * Password field, self-explanatory.
+	 */
+	private JPasswordField passwordField;
 	
 	/**
 	 * Quotes panel, scrolling text from right to left
+	 */	
+	private MarqueePanel pQuotes;
+	
+	/**
+	 * Left panel, containing the tally buttons and scrolling text.
 	 */
-	
-	MarqueePanel pQuotes;
-	
 	private JPanel pLeft;
 	
 	/**
@@ -75,6 +103,9 @@ public class MainGui {
 	 */
 	private Map<Integer, RoommateGUI> mpRoommates = new HashMap<Integer, RoommateGUI>();
 	
+	/**
+	 * Active room mates by room number
+	 */
 	private Map<Integer, String> names = DBHandler.getActiveRoommates();
 	
 	/**
@@ -82,6 +113,7 @@ public class MainGui {
 	 */
 	private Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 
+	
 	/**
 	 * Launch the application.
 	 */
@@ -124,26 +156,189 @@ public class MainGui {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
+		// Set up card layout
+		pCardManager = new JPanel();
+		pCardManager.setBounds(0, 0, screen.width, screen.height);
+		frame.getContentPane().add(pCardManager);
+		pCardManager.setLayout(new CardLayout(0, 0));
+		cardLayout = (CardLayout)(pCardManager.getLayout());
+			
 		// Split the pane in two sides, left the buttons, right the history log and apply button
-		JSplitPane spMain = new JSplitPane();
+		spMain = new JSplitPane();
+		pCardManager.add(spMain, "main");
+		
+		// Divider settings
 		spMain.setEnabled(false);
-		spMain.setBounds(0, 0, screen.width, screen.height);
-		spMain.setDividerLocation(0.66);
+		spMain.setDividerLocation((int) (screen.width * 0.66));
 		spMain.setDividerSize(0);
 		
-		frame.getContentPane().add(spMain);
-		
 		// Create and initialize right panel
-		pRight = new JPanel();
-		spMain.setRightComponent(pRight);	
+		initializeRightPanel();
+				
+		// Create and initialize left panel	
+		initializeLeftPanel();	
+				
+		// Create and initialize password panel
+		initializePassPanel();		
 		
+		// Create and initialize options panel
+		initializeOptionsPanel();
+	}
+	
+	/**
+	 * Initialize the left panel.
+	 */
+	private void initializeLeftPanel() {
 		pLeft = new JPanel();
 		spMain.setLeftComponent(pLeft);
 		pLeft.setLayout(new BorderLayout(0, 0));
 		
+		pQuotes = new MarqueePanel(100, 1);
+		pQuotes.setWrap(true);
+		pQuotes.setWrapAmount(0);
+		
+		pLeft.add(pQuotes, BorderLayout.SOUTH);
+		
+		ArrayList<String> quotes = QuoteParser.getQuotes();
+		frame.pack();
+		
+		for (String quote : quotes) {
+			pQuotes.add(new JLabel(quote));
+			
+			// Add spacing between quotes
+			pQuotes.add(Box.createRigidArea(new Dimension(pQuotes.getWidth(), 0)));
+		}
+		
+		initializeTallyPanel();
+		
+		// Get names for and add functionality to buttons
+		Map<Integer, Integer> tallies = BeerHandler.getCurrentTallies();
+		
+		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet())
+		{
+			RoommateGUI rmGui = (RoommateGUI) entry.getValue();
+			JButton btn = rmGui.getTallyButton();
+			JLabel tdL = rmGui.getDiffTallyLabel();
+			JLabel ttL = rmGui.getTotalTallyLabel();
+			int roomNumber = (int) entry.getKey();
+
+			if (tallies.containsKey(roomNumber)) {
+				ttL.setText(Integer.toString(tallies.get(roomNumber)));
+			}
+			
+			if (names.containsKey(roomNumber)) {
+				btn.setText(names.get(roomNumber));
+			}
+			
+			btn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (!tdL.isEnabled()) {
+						tdL.setEnabled(true);
+						tdL.setForeground(new Color(0, 153, 0));
+						tdL.setFont(tdL.getFont().deriveFont(24f));
+					}
+					
+					if (!bApplyTally.isEnabled()) {
+						bApplyTally.setEnabled(true);
+						bCancelTally.setEnabled(true);
+					}
+	
+					int currentDiff = Integer.parseInt(tdL.getText()) + 1;
+					BeerHandler.addTally(roomNumber);
+					tdL.setText(Integer.toString(currentDiff));
+				}
+			});
+		}		
+	}
+	
+	/**
+	 * Initialize the right panel.
+	 */
+	private void initializeRightPanel() {
+		pRight = new JPanel();
+		pRight.setLayout(new BorderLayout(0, 0));	
+		spMain.setRightComponent(pRight);	
+		pHistory = new ImagePane();
+		pHistory.setPreferredSize(new Dimension(screen.width, (int) (screen.height*0.3)));
+		pRight.add(pHistory, BorderLayout.NORTH);
+		pHistory.setLayout(new BorderLayout(0, 0));
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setOpaque(false);
+		scrollPane.getViewport().setOpaque(false);
+		pHistory.add(scrollPane, BorderLayout.CENTER);
+		
+		taHistory = new TransparentTextArea();
+		taHistory.setEditable(false);
+		taHistory.setForeground(new Color(204, 0, 0));
+		taHistory.setLineWrap(true);
+		scrollPane.setViewportView(taHistory);
+		
+		pRightButtons = new JPanel();
+		pRight.add(pRightButtons, BorderLayout.CENTER);
+		
+		// Auto-generated with WindowBuilder
+		GridBagLayout gbl_pRightButtons = new GridBagLayout();
+		gbl_pRightButtons.columnWidths = new int[]{0, 0};
+		gbl_pRightButtons.rowHeights = new int[]{0, 1, 0, 0};
+		gbl_pRightButtons.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+		gbl_pRightButtons.rowWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
+		pRightButtons.setLayout(gbl_pRightButtons);
+		
+		bApplyTally = new JButton("Apply Tallies");
+		bApplyTally.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				applyTallies();
+			}
+		});
+		
+		bApplyTally.setPreferredSize(new Dimension(300, 150));
+		bApplyTally.setEnabled(false);
+		GridBagConstraints gbc_bApplyTally = new GridBagConstraints();
+		gbc_bApplyTally.insets = new Insets(10, 0, 5, 0);
+		gbc_bApplyTally.fill = GridBagConstraints.BOTH;
+		gbc_bApplyTally.gridx = 0;
+		gbc_bApplyTally.gridy = 0;
+		pRightButtons.add(bApplyTally, gbc_bApplyTally);
+		
+		JButton bOptions = new JButton("Options");				
+		bOptions.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "password");
+			}
+		});
+		
+		bOptions.setPreferredSize(new Dimension(300, 150));
+		GridBagConstraints gbc_bOptions = new GridBagConstraints();
+		gbc_bOptions.fill = GridBagConstraints.BOTH;
+		gbc_bOptions.insets = new Insets(0, 0, 5, 0);
+		gbc_bOptions.gridx = 0;
+		gbc_bOptions.gridy = 1;
+		pRightButtons.add(bOptions, gbc_bOptions);
+		
+		bCancelTally = new JButton("Cancel");
+		bCancelTally.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				BeerHandler.resetTallies();
+				resetDiff();
+			}
+		});
+		bCancelTally.setPreferredSize(new Dimension(300, 150));
+		bCancelTally.setEnabled(false);
+		GridBagConstraints gbc_bCancelTally = new GridBagConstraints();
+		gbc_bCancelTally.fill = GridBagConstraints.BOTH;
+		gbc_bCancelTally.gridx = 0;
+		gbc_bCancelTally.gridy = 2;
+		pRightButtons.add(bCancelTally, gbc_bCancelTally);
+	}
+	
+	/**
+	 * Initialize tally panel
+	 */
+	private void initializeTallyPanel() {
 		// Create and initialize left panel
 		pTallyButtons = new JPanel();
 		pLeft.add(pTallyButtons, BorderLayout.CENTER);
+		
 		// Auto-generated with WindowBuilder
 		GridBagLayout gbl_pTallyButtons = new GridBagLayout();
 		gbl_pTallyButtons.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -565,7 +760,7 @@ public class MainGui {
 		gbc_lRMTally_1.gridx = 2;
 		gbc_lRMTally_1.gridy = 2;
 		pTallyButtons.add(lRMTally_1, gbc_lRMTally_1);
-						
+		
 		JLabel lRMTally_2 = new JLabel("0");
 		GridBagConstraints gbc_lRMTally_2 = new GridBagConstraints();
 		gbc_lRMTally_2.insets = new Insets(0, 0, 5, 5);
@@ -586,7 +781,7 @@ public class MainGui {
 		gbc_lRMTally_4.gridx = 2;
 		gbc_lRMTally_4.gridy = 8;
 		pTallyButtons.add(lRMTally_4, gbc_lRMTally_4);
-	
+		
 		JLabel lRMTally_5 = new JLabel("0");
 		GridBagConstraints gbc_lRMTally_5 = new GridBagConstraints();
 		gbc_lRMTally_5.insets = new Insets(0, 0, 5, 5);
@@ -662,150 +857,121 @@ public class MainGui {
 		mpRoommates.put(19, new RoommateGUI(bRM_19, lRMTally_19, lRMDiffTally_19));
 		mpRoommates.put(20, new RoommateGUI(bRM_20, lRMTally_20, lRMDiffTally_20));
 		mpRoommates.put(21, new RoommateGUI(bRM_21, lRMTally_21, lRMDiffTally_21));
-		
-		pQuotes = new MarqueePanel(100, 1);
-		pQuotes.setWrap(true);
-		pQuotes.setWrapAmount(0);
-		
-		pLeft.add(pQuotes, BorderLayout.SOUTH);
-		
-		ArrayList<String> quotes = quoteParser.getQuotes();
-		frame.pack();
-		
-		for (String quote : quotes) {
-			pQuotes.add(new JLabel(quote));
-			
-			// Add spacing between quotes
-			pQuotes.add(Box.createRigidArea(new Dimension(pQuotes.getWidth(), 0)));
-		}
-				
-		initializeRightPanel();
-		initializeLeftPanel();	
 	}
 	
 	/**
-	 * Initialize the left panel.
+	 * Initialize password panel
 	 */
-	private void initializeLeftPanel() {
-		
-		// Get names for and add functionality to buttons
-		Map<Integer, Integer> tallies = BeerHandler.getCurrentTallies();
-		
-		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet())
-		{
-			RoommateGUI rmGui = (RoommateGUI) entry.getValue();
-			JButton btn = rmGui.getTallyButton();
-			JLabel tdL = rmGui.getDiffTallyLabel();
-			JLabel ttL = rmGui.getTotalTallyLabel();
-			int roomNumber = (int) entry.getKey();
+	private void initializePassPanel() {
+		pPassword = new JPanel();
 
-			if (tallies.containsKey(roomNumber)) {
-				ttL.setText(Integer.toString(tallies.get(roomNumber)));
-			}
-			
-			if (names.containsKey(roomNumber)) {
-				btn.setText(names.get(roomNumber));
-			}
-			
-			btn.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-					if (btn.isEnabled()) {
-						if (!tdL.isEnabled()) {
-							tdL.setEnabled(true);
-							tdL.setForeground(new Color(0, 153, 0));
-							tdL.setFont(tdL.getFont().deriveFont(24f));
-						}
-						
-						if (!bApplyTally.isEnabled()) {
-							bApplyTally.setEnabled(true);
-							bCancelTally.setEnabled(true);
-						}
+		pCardManager.add(pPassword, "password");
+		GridBagLayout gbl_pPassword = new GridBagLayout();
+		pPassword.setLayout(gbl_pPassword);
 		
-						int currentDiff = Integer.parseInt(tdL.getText()) + 1;
-						BeerHandler.addTally(roomNumber);
-						tdL.setText(Integer.toString(currentDiff));		
+		JLabel lPassword = new JLabel("Password");
+		GridBagConstraints c = new GridBagConstraints();
+		c.insets = new Insets(0, 0, 5, 5);
+		pPassword.add(lPassword, c);
+		
+		passwordField = new JPasswordField(10);
+		passwordField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					if (checkPassword()) {			
+						cardLayout.show(pCardManager, "options");
+					}
+					else {
+						passwordField.setText("");
+						passwordField.requestFocus();
 					}
 				}
-			});
-		}		
+				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					cardLayout.show(pCardManager, "main");
+				}
+			}
+		});
+		GridBagConstraints c2 = new GridBagConstraints();
+		c2.insets = new Insets(0, 0, 5, 0);
+		pPassword.add(passwordField, c2);
+		
+		JButton bCancelPass = new JButton("Cancel");
+		bCancelPass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "main");
+			}
+		});
+		GridBagConstraints gbc_bCancelPass = new GridBagConstraints();
+		gbc_bCancelPass.insets = new Insets(0, 0, 0, 5);
+		gbc_bCancelPass.gridx = 0;
+		gbc_bCancelPass.gridy = 1;
+		pPassword.add(bCancelPass, gbc_bCancelPass);
+		
+		JButton bEnterPass = new JButton("Enter");
+		bEnterPass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (checkPassword()) {			
+					cardLayout.show(pCardManager, "options");
+				}
+				else {
+					passwordField.setText("");
+					passwordField.requestFocus();				
+				}
+			}
+		});
+		GridBagConstraints gbc_bEnterPass = new GridBagConstraints();
+		gbc_bEnterPass.gridx = 1;
+		gbc_bEnterPass.gridy = 1;
+		pPassword.add(bEnterPass, gbc_bEnterPass);
+		
+		pPassword.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent e) {
+				passwordField.requestFocus();
+			}
+		});
+	}
+
+	/**
+	 * Checks password
+	 * @return result	True if password matches
+	 */
+	private boolean checkPassword() {
+		boolean result = false;
+		try {					
+			byte[] pass = new String(passwordField.getPassword()).getBytes("UTF-8");
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(pass);
+			byte[] messageDigest = md.digest();
+			
+			StringBuffer hexString = new StringBuffer();
+            for (int i = 0; i<messageDigest.length; i++) {
+                String hex = Integer.toHexString(0xFF & messageDigest[i]);
+                if (hex.length() == 1)
+                    hexString.append('0');
+
+                hexString.append(hex);
+            }
+			
+           	if (DBHandler.checkPassword(hexString.toString())) {
+           		result = true;
+           	}
+		} catch (Exception err) {
+			err.printStackTrace();
+		}
+		
+		return result;
 	}
 	
 	/**
-	 * Initialize the right panel.
+	 * Initialize options panel
 	 */
-	private void initializeRightPanel() {
-		pRight.setLayout(new BorderLayout(0, 0));
-		
-		pHistory = new ImagePane();
-		pHistory.setPreferredSize(new Dimension(screen.width, (int) (screen.height*0.3)));
-		pRight.add(pHistory, BorderLayout.NORTH);
-		pHistory.setLayout(new BorderLayout(0, 0));
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
-		pHistory.add(scrollPane, BorderLayout.CENTER);
-		
-		taHistory = new TransparentTextArea();
-		taHistory.setEditable(false);
-		taHistory.setForeground(new Color(204, 0, 0));
-		taHistory.setLineWrap(true);
-		scrollPane.setViewportView(taHistory);
-		
-		pRightButtons = new JPanel();
-		pRight.add(pRightButtons, BorderLayout.CENTER);
-		
-		// Auto-generated with WindowBuilder
-		GridBagLayout gbl_pRightButtons = new GridBagLayout();
-		gbl_pRightButtons.columnWidths = new int[]{0, 0};
-		gbl_pRightButtons.rowHeights = new int[]{0, 1, 0, 0};
-		gbl_pRightButtons.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-		gbl_pRightButtons.rowWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
-		pRightButtons.setLayout(gbl_pRightButtons);
-		
-		bApplyTally = new JButton("Apply Tallies");
-		bApplyTally.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {				
-				applyTallies();
-			}
-		});
-		bApplyTally.setPreferredSize(new Dimension(300, 150));
-		bApplyTally.setEnabled(false);
-		GridBagConstraints gbc_bApplyTally = new GridBagConstraints();
-		gbc_bApplyTally.insets = new Insets(10, 0, 5, 0);
-		gbc_bApplyTally.fill = GridBagConstraints.BOTH;
-		gbc_bApplyTally.gridx = 0;
-		gbc_bApplyTally.gridy = 0;
-		pRightButtons.add(bApplyTally, gbc_bApplyTally);
-		
-		JButton bButton_2 = new JButton("Placeholder");
-		bButton_2.setPreferredSize(new Dimension(300, 150));
-		bButton_2.setEnabled(false);
-		GridBagConstraints gbc_bButton_2 = new GridBagConstraints();
-		gbc_bButton_2.fill = GridBagConstraints.BOTH;
-		gbc_bButton_2.insets = new Insets(0, 0, 5, 0);
-		gbc_bButton_2.gridx = 0;
-		gbc_bButton_2.gridy = 1;
-		pRightButtons.add(bButton_2, gbc_bButton_2);
-		
-		bCancelTally = new JButton("Cancel");
-		bCancelTally.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				BeerHandler.resetTallies();
-				resetDiff();
-			}
-		});
-		bCancelTally.setPreferredSize(new Dimension(300, 150));
-		bCancelTally.setEnabled(false);
-		GridBagConstraints gbc_bCancelTally = new GridBagConstraints();
-		gbc_bCancelTally.fill = GridBagConstraints.BOTH;
-		gbc_bCancelTally.gridx = 0;
-		gbc_bCancelTally.gridy = 2;
-		pRightButtons.add(bCancelTally, gbc_bCancelTally);
+	private void initializeOptionsPanel() {
+		JPanel pOptions = new JPanel();
+		pCardManager.add(pOptions, "options");
+		pOptions.setBounds(0, 0, screen.width, screen.height);
 	}
-	
 	/**
 	 * Apply the tallies.
 	 */

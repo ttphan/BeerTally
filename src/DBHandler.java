@@ -328,5 +328,29 @@ public class DBHandler {
 		
 		return result;
 	}
+	
+	public static boolean checkPassword(String hex) {
+		boolean result = false;
+		Connection c = getConnection();
+		Statement stmt = null;
+		
+		// Sanity check, to ensure that the string is a hexadecimal.
+		if (hex.matches("-?[0-9a-fA-F]+")) {
+			try {
+				stmt = c.createStatement();
+				String sql = "SELECT * FROM Password WHERE pass == '" + hex + "';";
+				
+				ResultSet rs = stmt.executeQuery(sql);
+				
+				if (rs.next()) {
+					result = true;
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result;
+	}
 
 }

@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 
@@ -11,7 +12,10 @@ import javax.swing.event.*;
  *  Various properties control the scrolling of the components on the panel.
  *  Changes to the properties are dynamic and will take effect the next time
  *  the components are scrolled.
+ *  
+ *  http://tips4java.wordpress.com/2011/04/24/marquee-panel/
  */
+@SuppressWarnings("serial")
 public class MarqueePanel extends JPanel
 	implements ActionListener, AncestorListener, WindowListener
 {
