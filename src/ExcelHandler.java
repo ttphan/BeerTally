@@ -18,16 +18,30 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 
 public class ExcelHandler {
-	public static void writeToExcelFile(int listId) {
+	/**
+	 * Generate excel report of the latest list.
+	 * @return The file name.
+	 */
+	public static String writeToExcelFile() {
+		return writeToExcelFile(DBHandler.getLatestListId());
+	}
+	
+	/**
+	 * Generate the excel report of the given list id.
+	 * @param listId	The id of the list to generate an excel file of.
+	 * @return result	The file name.
+	 */
+	public static String writeToExcelFile(int listId) {
 		String date = DBHandler.getListDate(listId);
 		date = date.replace("-", "");
 		FileOutputStream fileOut = null;
 		Map<Integer, Integer> tallies = DBHandler.getAllTallies(listId);
 		Map<Integer, String> roommates = DBHandler.getAllRoommates();
+		String fileName = date + "-" + listId + ".xls";
 		
 		Workbook wb = new HSSFWorkbook();
 		Sheet shTallies = wb.createSheet("Tallies");
-		File file = new File("data/generated/sheets/" + date + "-" + listId + ".xls");
+		File file = new File("data/generated/sheets/" + fileName);
 		try {
 			int index = 0;
 			
@@ -51,6 +65,6 @@ public class ExcelHandler {
 			e.printStackTrace();
 		}
 		
-		
+		return fileName;
 	}
 }

@@ -24,8 +24,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 
-public class MainGui {
-
+public class MainGui implements ActionListener {
 	private JFrame frame;
 	
 	/**
@@ -109,6 +108,11 @@ public class MainGui {
 	private Map<Integer, String> names = DBHandler.getActiveRoommates();
 	
 	/**
+	 * New list confirmation button
+	 */
+	private JButton bNewListYes;
+	
+	/**
 	 * Used to fetch the resolutions of the screen
 	 */
 	private Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -133,8 +137,7 @@ public class MainGui {
 	/**
 	 * Create the application.
 	 */
-	public MainGui() {
-		
+	public MainGui() {	
 		initialize();
 	}
 
@@ -183,6 +186,9 @@ public class MainGui {
 		
 		// Create and initialize options panel
 		initializeOptionsPanel();
+		
+		// Create and initialize new list panel
+		initializeNewListPanel();
 	}
 	
 	/**
@@ -225,6 +231,9 @@ public class MainGui {
 			if (tallies.containsKey(roomNumber)) {
 				ttL.setText(Integer.toString(tallies.get(roomNumber)));
 			}
+			else {
+				ttL.setText("0");
+			}
 			
 			if (names.containsKey(roomNumber)) {
 				btn.setText(names.get(roomNumber));
@@ -261,10 +270,11 @@ public class MainGui {
 		pRight = new JPanel();
 		pRight.setLayout(new BorderLayout(0, 0));	
 		spMain.setRightComponent(pRight);	
+		
 		pHistory = new ImagePane();
-		pHistory.setPreferredSize(new Dimension(screen.width, (int) (screen.height*0.3)));
-		pRight.add(pHistory, BorderLayout.NORTH);
 		pHistory.setLayout(new BorderLayout(0, 0));
+		pRight.add(pHistory, BorderLayout.NORTH);
+		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setOpaque(false);
 		scrollPane.getViewport().setOpaque(false);
@@ -287,7 +297,7 @@ public class MainGui {
 		gbl_pRightButtons.rowWeights = new double[]{1.0, 1.0, 1.0, Double.MIN_VALUE};
 		pRightButtons.setLayout(gbl_pRightButtons);
 		
-		bApplyTally = new JButton("Apply Tallies");
+		bApplyTally = new JButton("Turfen");
 		bApplyTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				applyTallies();
@@ -303,7 +313,7 @@ public class MainGui {
 		gbc_bApplyTally.gridy = 0;
 		pRightButtons.add(bApplyTally, gbc_bApplyTally);
 		
-		JButton bOptions = new JButton("Options");				
+		JButton bOptions = new JButton("Opties");				
 		bOptions.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCardManager, "password");
@@ -318,7 +328,7 @@ public class MainGui {
 		gbc_bOptions.gridy = 1;
 		pRightButtons.add(bOptions, gbc_bOptions);
 		
-		bCancelTally = new JButton("Cancel");
+		bCancelTally = new JButton("Annuleren");
 		bCancelTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				BeerHandler.resetTallies();
@@ -867,12 +877,12 @@ public class MainGui {
 	 */
 	private void initializePassPanel() {
 		pPassword = new JPanel();
-
 		pCardManager.add(pPassword, "password");
+		
 		GridBagLayout gbl_pPassword = new GridBagLayout();
 		pPassword.setLayout(gbl_pPassword);
 		
-		JLabel lPassword = new JLabel("Password");
+		JLabel lPassword = new JLabel("Wachtwoord");
 		GridBagConstraints c = new GridBagConstraints();
 		c.insets = new Insets(0, 0, 5, 5);
 		pPassword.add(lPassword, c);
@@ -886,9 +896,10 @@ public class MainGui {
 						cardLayout.show(pCardManager, "options");
 					}
 					else {
-						passwordField.setText("");
 						passwordField.requestFocus();
 					}
+					
+					passwordField.setText("");
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 					cardLayout.show(pCardManager, "main");
@@ -899,7 +910,7 @@ public class MainGui {
 		c2.insets = new Insets(0, 0, 5, 0);
 		pPassword.add(passwordField, c2);
 		
-		JButton bCancelPass = new JButton("Cancel");
+		JButton bCancelPass = new JButton("Terug");
 		bCancelPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCardManager, "main");
@@ -911,16 +922,17 @@ public class MainGui {
 		gbc_bCancelPass.gridy = 1;
 		pPassword.add(bCancelPass, gbc_bCancelPass);
 		
-		JButton bEnterPass = new JButton("Enter");
+		JButton bEnterPass = new JButton("OK");
 		bEnterPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (checkPassword()) {			
 					cardLayout.show(pCardManager, "options");
 				}
 				else {
-					passwordField.setText("");
 					passwordField.requestFocus();				
 				}
+				
+				passwordField.setText("");
 			}
 		});
 		GridBagConstraints gbc_bEnterPass = new GridBagConstraints();
@@ -935,7 +947,133 @@ public class MainGui {
 			}
 		});
 	}
+	
+	/**
+	 * Initialize options panel
+	 */
+	private void initializeOptionsPanel() {
+		JPanel pOptions = new JPanel();
+		pCardManager.add(pOptions, "options");
+		GridBagLayout gbl_pOptions = new GridBagLayout();
+		pOptions.setLayout(gbl_pOptions);
+		
+		JButton bNewList = new JButton("Nieuwe lijst maken");
+		bNewList.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "newList");
+			}
+		});
+		bNewList.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bNewList = new GridBagConstraints();
+		gbc_bNewList.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bNewList.anchor = GridBagConstraints.NORTH;
+		gbc_bNewList.insets = new Insets(0, 0, 10, 0);
+		gbc_bNewList.gridx = 0;
+		gbc_bNewList.gridy = 0;
+		pOptions.add(bNewList, gbc_bNewList);
+		
+		JButton bNewRoommate = new JButton("Nieuwe huisgenoot");
+		bNewRoommate.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bNewRoommate = new GridBagConstraints();
+		gbc_bNewRoommate.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bNewRoommate.anchor = GridBagConstraints.NORTH;
+		gbc_bNewRoommate.insets = new Insets(0, 0, 10, 0);
+		gbc_bNewRoommate.gridx = 0;
+		gbc_bNewRoommate.gridy = 1;
+		pOptions.add(bNewRoommate, gbc_bNewRoommate);
+		
+		JButton bInternMove = new JButton("Interne verhuizing");
+		bInternMove.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bInternMove = new GridBagConstraints();
+		gbc_bInternMove.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bInternMove.insets = new Insets(0, 0, 10, 0);
+		gbc_bInternMove.gridx = 0;
+		gbc_bInternMove.gridy = 2;
+		pOptions.add(bInternMove, gbc_bInternMove);
+		
+		JButton bTempTally = new JButton("Extra turfers");
+		bTempTally.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bTempTally = new GridBagConstraints();
+		gbc_bTempTally.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bTempTally.insets = new Insets(0, 0, 10, 0);
+		gbc_bTempTally.gridx = 0;
+		gbc_bTempTally.gridy = 3;
+		pOptions.add(bTempTally, gbc_bTempTally);
+				
+		JButton bNewPassword = new JButton("Nieuw wachtwoord");
+		bNewPassword.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bNewPassword = new GridBagConstraints();
+		gbc_bNewPassword.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bNewPassword.insets = new Insets(0, 0, 10, 0);
+		gbc_bNewPassword.gridx = 0;
+		gbc_bNewPassword.gridy = 4;
+		pOptions.add(bNewPassword, gbc_bNewPassword);
+		
+		JButton bOptionsBack = new JButton("Terug");
+		bOptionsBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "main");
+			}
+		});		
+		bOptionsBack.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bOptionsBack = new GridBagConstraints();
+		gbc_bOptionsBack.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bOptionsBack.insets = new Insets(0, 0, 10, 0);
+		gbc_bOptionsBack.gridx = 0;
+		gbc_bOptionsBack.gridy = 5;
+		pOptions.add(bOptionsBack, gbc_bOptionsBack);
+		
+		
+	}
 
+	/**
+	 * Initialize new list panel
+	 */
+	private void initializeNewListPanel() {
+		JPanel pNewList = new JPanel();
+		pCardManager.add(pNewList, "newList");
+		GridBagLayout gbl_pNewList = new GridBagLayout();
+		pNewList.setLayout(gbl_pNewList);
+		
+		JLabel lNewListHeader = new JLabel("Dit gaat een nieuwe lijst creëeren, waardoor de vorige "
+				+ "lijst zal sluiten!");
+		lNewListHeader.setFont(lNewListHeader.getFont().deriveFont(24f));
+		GridBagConstraints gbc_lNewListHeader = new GridBagConstraints();
+		gbc_lNewListHeader.gridx = 0;
+		gbc_lNewListHeader.gridy = 0;
+		pNewList.add(lNewListHeader, gbc_lNewListHeader);
+		
+		JLabel lNewListSub = new JLabel("Weet je het zeker?");
+		lNewListSub.setFont(lNewListSub.getFont().deriveFont(18f));
+		GridBagConstraints gbc_lNewListSub = new GridBagConstraints();
+		gbc_lNewListSub.gridx = 0;
+		gbc_lNewListSub.gridy = 1;
+		pNewList.add(lNewListSub, gbc_lNewListSub);
+		
+		JPanel pNewListConfirm = new JPanel();
+		pNewListConfirm.setLayout(new FlowLayout(FlowLayout.LEADING, 30, 30));
+		GridBagConstraints gbc_pNewListConfirm = new GridBagConstraints();
+		gbc_pNewListConfirm.gridx = 0;
+		gbc_pNewListConfirm.gridy = 2;
+		pNewList.add(pNewListConfirm, gbc_pNewListConfirm);
+
+		bNewListYes = new JButton("Ja");
+		bNewListYes.addActionListener(this);
+		bNewListYes.setPreferredSize(new Dimension(300, 100));
+		
+		JButton bNewListNo = new JButton("Nee");
+		bNewListNo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "options");
+			}
+		});
+		bNewListNo.setPreferredSize(new Dimension(300, 100));
+		
+		pNewListConfirm.add(bNewListYes);
+		pNewListConfirm.add(bNewListNo);
+		
+	}
+	
 	/**
 	 * Checks password
 	 * @return result	True if password matches
@@ -967,14 +1105,7 @@ public class MainGui {
 		return result;
 	}
 	
-	/**
-	 * Initialize options panel
-	 */
-	private void initializeOptionsPanel() {
-		JPanel pOptions = new JPanel();
-		pCardManager.add(pOptions, "options");
-		pOptions.setBounds(0, 0, screen.width, screen.height);
-	}
+	
 	/**
 	 * Apply the tallies.
 	 */
@@ -1016,6 +1147,7 @@ public class MainGui {
 	 * Update the history log.
 	 */
 	private void updateHistory() {
+
 		Map<Integer, Integer> tallies = BeerHandler.getTempTally();
 		
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -1036,5 +1168,67 @@ public class MainGui {
 			}
 		}
 		taHistory.append("---------------------------------------------------------\n");
+	}
+	
+	/**
+	 * Resets the uncommitted tallies and refreshes the tally count.
+	 */
+	private void fullReset() {
+		resetDiff();
+			
+		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet())
+		{
+			RoommateGUI rmGui = (RoommateGUI) entry.getValue();
+			JLabel ttL = rmGui.getTotalTallyLabel();
+
+			ttL.setText("0");
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// New list confirmation button
+		if (e.getSource() == bNewListYes) {
+			String fileName = ExcelHandler.writeToExcelFile();
+			BeerHandler.newList();
+
+			fullReset();
+			
+			JPanel pNewListSuccess = new JPanel();
+			pCardManager.add(pNewListSuccess, "newListSuccess");
+			GridBagLayout gbl_pNewListSuccess = new GridBagLayout();
+			pNewListSuccess.setLayout(gbl_pNewListSuccess);
+			
+			JLabel lNewListSuccessHeader = new JLabel("Een nieuwe lijst is gecreeërd!");
+			lNewListSuccessHeader.setFont(lNewListSuccessHeader.getFont().deriveFont(24f));
+			GridBagConstraints gbc_lNewListSuccessHeader = new GridBagConstraints();
+			gbc_lNewListSuccessHeader.gridx = 0;
+			gbc_lNewListSuccessHeader.gridy = 0;
+			pNewListSuccess.add(lNewListSuccessHeader, gbc_lNewListSuccessHeader);
+			
+			JLabel lNewListSuccessSub = new JLabel("Een Excel bestand is aangemaakt "
+					+ "als " + fileName);
+			lNewListSuccessSub.setFont(lNewListSuccessSub.getFont().deriveFont(18f));
+			GridBagConstraints gbc_lNewListSuccessSub = new GridBagConstraints();
+			gbc_lNewListSuccessSub.gridx = 0;
+			gbc_lNewListSuccessSub.gridy = 1;
+			pNewListSuccess.add(lNewListSuccessSub, gbc_lNewListSuccessSub);
+			
+			JButton pNewListBack = new JButton("Terug");
+			pNewListBack.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCardManager, "options");
+				}
+			});
+			pNewListBack.setPreferredSize(new Dimension(300, 100));
+			GridBagConstraints gbc_pNewListBack = new GridBagConstraints();
+			gbc_pNewListBack.insets = new Insets(10, 0, 0, 0);
+			gbc_pNewListBack.gridx = 0;
+			gbc_pNewListBack.gridy = 2;
+			pNewListSuccess.add(pNewListBack, gbc_pNewListBack);
+			
+			cardLayout.show(pCardManager, "newListSuccess");
+		}
+		
 	}
 }

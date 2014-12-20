@@ -352,11 +352,34 @@ public class DBHandler {
 					result = true;
 				}
 				
+				stmt.close();
+				c.close();
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		return result;
+	}
+	
+	public static void newList() {
+		Connection c = getConnection();
+		Statement stmt = null;
+		
+		try {
+			stmt = c.createStatement();
+			String sql = "INSERT INTO List DEFAULT VALUES;";
+			
+			stmt.execute(sql);
+			
+			c.commit();
+			
+			stmt.close();
+			c.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
