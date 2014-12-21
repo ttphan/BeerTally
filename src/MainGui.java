@@ -83,6 +83,21 @@ public class MainGui implements ActionListener {
 	private JPanel pHistory;
 	
 	/**
+	 * Generic confirmation panel.
+	 */
+	private JPanel pConfirmation;
+	
+	/**
+	 * Generic confirmation header.
+	 */
+	private JLabel lConfirmationHeader;
+	
+	/**
+	 * Generic confirmation sub header.
+	 */
+	private JLabel lConfirmationSub;
+	
+	/**
 	 * Apply button, commits the tallies to the database.
 	 */
 	private JButton bApplyTally;
@@ -103,9 +118,14 @@ public class MainGui implements ActionListener {
 	private Map<Integer, RoommateGUI> mpRoommates = new HashMap<Integer, RoommateGUI>();
 	
 	/**
-	 * Active room mates by room number
+	 * Active room mates, names by room number
 	 */
 	private Map<Integer, String> names = DBHandler.getActiveRoommates();
+	
+	/**
+	 * Active room mates, roommate id by room number
+	 */
+	private Map<Integer, Integer> roommateIds = DBHandler.getRoommateIds();
 	
 	/**
 	 * New list confirmation button
@@ -175,6 +195,9 @@ public class MainGui implements ActionListener {
 		spMain.setDividerLocation((int) (screen.width * 0.66));
 		spMain.setDividerSize(0);
 		
+		// Create and initialize generic confirmation panel
+		initializeConfirmationPanel();
+		
 		// Create and initialize right panel
 		initializeRightPanel();
 				
@@ -192,6 +215,46 @@ public class MainGui implements ActionListener {
 		
 		// Create and initialize password change panel
 		initializeNewPassPanel();
+		
+		// Create and initialize temporary tally panel
+		initializeTempTallyPanel();
+	}
+	
+	/**
+	 * Initialize the confirmation panel.
+	 */
+	private void initializeConfirmationPanel() {
+		pConfirmation = new JPanel();
+		GridBagLayout gbl_pConfirmation = new GridBagLayout();
+		pConfirmation.setLayout(gbl_pConfirmation);
+		pCardManager.add(pConfirmation, "confirmation");
+		
+		lConfirmationHeader = new JLabel("");
+		lConfirmationHeader.setFont(lConfirmationHeader.getFont().deriveFont(24f));
+		GridBagConstraints gbc_lConfirmationHeader = new GridBagConstraints();
+		gbc_lConfirmationHeader.gridx = 0;
+		gbc_lConfirmationHeader.gridy = 0;
+		pConfirmation.add(lConfirmationHeader, gbc_lConfirmationHeader);
+		
+		lConfirmationSub = new JLabel("");
+		lConfirmationSub.setFont(lConfirmationSub.getFont().deriveFont(18f));
+		GridBagConstraints gbc_lConfirmationSub = new GridBagConstraints();
+		gbc_lConfirmationSub.gridx = 0;
+		gbc_lConfirmationSub.gridy = 1;
+		pConfirmation.add(lConfirmationSub, gbc_lConfirmationSub);
+		
+		JButton bConfirmationBack = new JButton("Terug");
+		bConfirmationBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "main");
+			}
+		});
+		bConfirmationBack.setPreferredSize(new Dimension(300, 100));
+		GridBagConstraints gbc_bConfirmationBack = new GridBagConstraints();
+		gbc_bConfirmationBack.insets = new Insets(10, 0, 0, 0);
+		gbc_bConfirmationBack.gridx = 0;
+		gbc_bConfirmationBack.gridy = 2;
+		pConfirmation.add(bConfirmationBack, gbc_bConfirmationBack);
 	}
 	
 	/**
@@ -209,7 +272,7 @@ public class MainGui implements ActionListener {
 		pLeft.add(pQuotes, BorderLayout.SOUTH);
 		
 		ArrayList<String> quotes = QuoteParser.getQuotes();
-		frame.pack();
+		//frame.pack();
 		
 		for (String quote : quotes) {
 			pQuotes.add(new JLabel(quote));
@@ -223,16 +286,18 @@ public class MainGui implements ActionListener {
 		// Get names for and add functionality to buttons
 		Map<Integer, Integer> tallies = BeerHandler.getCurrentTallies();
 		
-		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet())
+		for (Map.Entry<Integer, Integer> entry : roommateIds.entrySet())
 		{
-			RoommateGUI rmGui = (RoommateGUI) entry.getValue();
+			int roommateId = entry.getValue();
+			int roomNumber = entry.getKey();
+			RoommateGUI rmGui = mpRoommates.get(roomNumber);
 			JButton btn = rmGui.getTallyButton();
 			JLabel tdL = rmGui.getDiffTallyLabel();
 			JLabel ttL = rmGui.getTotalTallyLabel();
-			int roomNumber = (int) entry.getKey();
+			
 
-			if (tallies.containsKey(roomNumber)) {
-				ttL.setText(Integer.toString(tallies.get(roomNumber)));
+			if (tallies.containsKey(roommateId)) {
+				ttL.setText(Integer.toString(tallies.get(roommateId)));
 			}
 			else {
 				ttL.setText("0");
@@ -885,7 +950,6 @@ public class MainGui implements ActionListener {
 		
 		JLabel lWrongPass = new JLabel("Onjuist wachtwoord!");
 		lWrongPass.setForeground(Color.RED);
-		lWrongPass.setVisible(false);
 		GridBagConstraints gbc_lWrongPass = new GridBagConstraints();
 		gbc_lWrongPass.insets = new Insets(10, 0, 0, 0);
 		gbc_lWrongPass.gridx = 1;
@@ -907,7 +971,6 @@ public class MainGui implements ActionListener {
 				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 					if (Security.checkPassword(passwordField.getPassword())) {			
 						cardLayout.show(pCardManager, "options");
-						lWrongPass.setVisible(false);
 					}
 					else {
 						passwordField.requestFocus();
@@ -928,7 +991,6 @@ public class MainGui implements ActionListener {
 		JButton bCancelPass = new JButton("Terug");
 		bCancelPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				lWrongPass.setVisible(false);
 				cardLayout.show(pCardManager, "main");
 			}
 		});
@@ -942,8 +1004,7 @@ public class MainGui implements ActionListener {
 		bEnterPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (Security.checkPassword(passwordField.getPassword())) {			
-					cardLayout.show(pCardManager, "options");
-					lWrongPass.setVisible(false);
+					cardLayout.show(pCardManager, "options");					
 				}
 				else {
 					passwordField.requestFocus();
@@ -963,7 +1024,9 @@ public class MainGui implements ActionListener {
 		pPassword.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentShown(ComponentEvent e) {
+				lWrongPass.setVisible(false);
 				passwordField.requestFocus();
+				passwordField.setText("");
 			}
 		});
 	}
@@ -1012,6 +1075,11 @@ public class MainGui implements ActionListener {
 		pOptions.add(bInternMove, gbc_bInternMove);
 		
 		JButton bTempTally = new JButton("Extra turfers");
+		bTempTally.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "tempTally");
+			}
+		});
 		bTempTally.setPreferredSize(new Dimension(200, 100));
 		GridBagConstraints gbc_bTempTally = new GridBagConstraints();
 		gbc_bTempTally.fill = GridBagConstraints.HORIZONTAL;
@@ -1046,9 +1114,7 @@ public class MainGui implements ActionListener {
 		gbc_bOptionsBack.insets = new Insets(0, 0, 10, 0);
 		gbc_bOptionsBack.gridx = 0;
 		gbc_bOptionsBack.gridy = 5;
-		pOptions.add(bOptionsBack, gbc_bOptionsBack);
-		
-		
+		pOptions.add(bOptionsBack, gbc_bOptionsBack);	
 	}
 
 	/**
@@ -1107,6 +1173,11 @@ public class MainGui implements ActionListener {
 		GridBagLayout gbl_pNewPass = new GridBagLayout();
 		pNewPass.setLayout(gbl_pNewPass);
 		
+		JPanel pNewPassConfirm = new JPanel();
+		GridBagLayout gbl_pNewPassConfirm = new GridBagLayout();
+		pNewPassConfirm.setLayout(gbl_pNewPassConfirm);
+		pCardManager.add(pNewPassConfirm, "newPassConfirm");
+		
 		JPanel pNewPassSub = new JPanel();
 		GridBagLayout gbl_pNewPassSub = new GridBagLayout();
 		pNewPassSub.setLayout(gbl_pNewPassSub);
@@ -1130,7 +1201,7 @@ public class MainGui implements ActionListener {
 		JLabel lNotMatching = new JLabel("Wachtwoorden zijn niet gelijk aan elkaar!");
 		lNotMatching.setForeground(Color.RED);
 		lNotMatching.setVisible(false);
-		JLabel lInvalidSize = new JLabel("Wachtwoord moet tussen de 4 en 16 karakters zijn");
+		JLabel lInvalidSize = new JLabel("Wachtwoord moet tussen de 4 en 16 karakters zijn!");
 		lInvalidSize.setForeground(Color.RED);
 		lInvalidSize.setVisible(false);
 		
@@ -1138,8 +1209,6 @@ public class MainGui implements ActionListener {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					lInvalidSize.setVisible(false);
-					lNotMatching.setVisible(false);
 					cardLayout.show(pCardManager, "options");
 				}
 			}
@@ -1169,7 +1238,12 @@ public class MainGui implements ActionListener {
 					if (Arrays.equals(newPass.getPassword(), newPassConfirm.getPassword())) {
 						if(newPass.getPassword().length > 4 && newPass.getPassword().length < 16 ) {
 							Security.newPassword(newPass.getPassword());
-							newPassConfirm();
+							
+							String confirmationHeader = "Het nieuwe wachtwoord is aangemaakt!";
+							String confirmationSub = "";
+							confirmationPanel(confirmationHeader, confirmationSub);
+							
+							cardLayout.show(pCardManager, "confirmation");
 						}
 						else {
 							lInvalidSize.setVisible(true);
@@ -1184,8 +1258,6 @@ public class MainGui implements ActionListener {
 					newPassConfirm.setText("");
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					lInvalidSize.setVisible(false);
-					lNotMatching.setVisible(false);
 					cardLayout.show(pCardManager, "options");
 				}
 			}
@@ -1215,7 +1287,6 @@ public class MainGui implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				lInvalidSize.setVisible(false);
 				lNotMatching.setVisible(false);
-				
 				if (Arrays.equals(newPass.getPassword(), newPassConfirm.getPassword())) {
 					if(newPass.getPassword().length > 4 && newPass.getPassword().length < 16 ) {
 						Security.newPassword(newPass.getPassword());
@@ -1255,42 +1326,103 @@ public class MainGui implements ActionListener {
 			@Override
 			public void componentShown(ComponentEvent e) {
 				newPass.requestFocus();
+				lInvalidSize.setVisible(false);
+				lNotMatching.setVisible(false);
+				newPass.setText("");
+				newPassConfirm.setText("");
 			}
 		});
 	}
 	
 	/**
-	 * New password confirmation panel
+	 * Initialize temporary tally panel
 	 */
-	private void newPassConfirm() {
-		JPanel pNewPassConfirm = new JPanel();
-		GridBagLayout gbl_pNewPassConfirm = new GridBagLayout();
-		pNewPassConfirm.setLayout(gbl_pNewPassConfirm);
-		pCardManager.add(pNewPassConfirm, "newPassConfirm");
+	private void initializeTempTallyPanel() {
+		JPanel pTempTally = new JPanel();
+		GridBagLayout gbl_pTempTally = new GridBagLayout();
+		pTempTally.setLayout(gbl_pTempTally);
+		pCardManager.add(pTempTally, "tempTally");
 		
-		JLabel lNewPassSuccessHeader = new JLabel("Het nieuwe wachtwoord is aangemaakt!");
-		lNewPassSuccessHeader.setFont(lNewPassSuccessHeader.getFont().deriveFont(24f));
-		GridBagConstraints gbc_lNewPassSuccessHeader = new GridBagConstraints();
-		gbc_lNewPassSuccessHeader.gridx = 0;
-		gbc_lNewPassSuccessHeader.gridy = 0;
-		pNewPassConfirm.add(lNewPassSuccessHeader, gbc_lNewPassSuccessHeader);
+		JPanel pNewTempTally = new JPanel();
+		GridBagLayout gbl_pNewTempTally = new GridBagLayout();
+		pNewTempTally.setLayout(gbl_pNewTempTally);
+		pCardManager.add(pNewTempTally, "newTempTally");
 		
-		JButton pNewPassBack = new JButton("Terug");
-		pNewPassBack.addActionListener(new ActionListener() {
+		JButton bNewTempTally = new JButton("Nieuw extra turflijst");
+		bNewTempTally.setPreferredSize(new Dimension(200, 100));
+		bNewTempTally.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//newTempTally(pNewTempTally);
+				cardLayout.show(pCardManager, "newTempTally");
+			}
+		});	
+		GridBagConstraints gbc_bNewTempTally = new GridBagConstraints();
+		gbc_bNewTempTally.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bNewTempTally.insets = new Insets(0, 0, 10, 0);
+		gbc_bNewTempTally.gridx = 0;
+		gbc_bNewTempTally.gridy = 0;
+		pTempTally.add(bNewTempTally, gbc_bNewTempTally);
+		
+		JButton bRemoveTempTally = new JButton("Sluit een extra turflijst");
+		bRemoveTempTally.setPreferredSize(new Dimension(200, 100));
+		GridBagConstraints gbc_bRemoveTempTally = new GridBagConstraints();
+		gbc_bRemoveTempTally.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bRemoveTempTally.insets = new Insets(0, 0, 10, 0);
+		gbc_bRemoveTempTally.gridx = 0;
+		gbc_bRemoveTempTally.gridy = 1;
+		pTempTally.add(bRemoveTempTally, gbc_bRemoveTempTally);
+		
+		JButton bTempTallyBack = new JButton("Terug");
+		bTempTallyBack.setPreferredSize(new Dimension(200, 100));
+		bTempTallyBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCardManager, "options");
 			}
-		});
-		pNewPassBack.setPreferredSize(new Dimension(300, 100));
-		GridBagConstraints gbc_pNewPassBack = new GridBagConstraints();
-		gbc_pNewPassBack.insets = new Insets(10, 0, 0, 0);
-		gbc_pNewPassBack.gridx = 0;
-		gbc_pNewPassBack.gridy = 1;
-		pNewPassConfirm.add(pNewPassBack, gbc_pNewPassBack);
+		});	
+		GridBagConstraints gbc_bTempTallyBack = new GridBagConstraints();
+		gbc_bTempTallyBack.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bTempTallyBack.insets = new Insets(0, 0, 10, 0);
+		gbc_bTempTallyBack.gridx = 0;
+		gbc_bTempTallyBack.gridy = 2;
+		pTempTally.add(bTempTallyBack, gbc_bTempTallyBack);
 		
-		cardLayout.show(pCardManager, "newPassConfirm");
+		pTempTally.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent e) {
+				if (!(names.containsKey(19) || names.containsKey(20) || names.containsKey(21))) {
+					bRemoveTempTally.setEnabled(false);
+				}
+				else {
+					bRemoveTempTally.setEnabled(true);
+				}
+				
+				if (names.containsKey(19) && names.containsKey(20) && names.containsKey(21)) {
+					bNewTempTally.setEnabled(false);
+				}
+				else {
+					bNewTempTally.setEnabled(true);
+				}
+			}
+		});
+		
 	}
+
 	
+	/**
+	 * Populates the confirmation panel.
+	 * @param header	The header
+	 * @param sub		The sub header
+	 */
+	private void confirmationPanel(String header, String sub) {
+		lConfirmationHeader.setText(header);
+		if (sub.equals("")) {
+			lConfirmationSub.setVisible(false);
+		}
+		else {
+			lConfirmationSub.setVisible(true);
+			lConfirmationSub.setText(sub);
+		}
+	}
 	
 	/**
 	 * Apply the tallies.
@@ -1301,9 +1433,13 @@ public class MainGui implements ActionListener {
 		
 		Map<Integer, Integer> tallies = BeerHandler.getCurrentTallies();
 		
-		for (Map.Entry<Integer, Integer> entry : tallies.entrySet()) {
+		for (Map.Entry<Integer, Integer> entry : roommateIds.entrySet()) {
 			int roomNumber = entry.getKey();
-			String tally = Integer.toString(entry.getValue());
+			int roommateId = entry.getValue();
+			String tally = "0";
+			if (tallies.containsKey(roommateId)) {
+				tally = Integer.toString(tallies.get(roommateId));
+			}
 			
 			mpRoommates.get(roomNumber).getTotalTallyLabel().setText(tally);
 		}
@@ -1378,42 +1514,14 @@ public class MainGui implements ActionListener {
 			String fileName = ExcelHandler.writeToExcelFile();
 			BeerHandler.newList();
 
-			fullReset();
+			fullReset();			
 			
-			JPanel pNewListSuccess = new JPanel();
-			pCardManager.add(pNewListSuccess, "newListSuccess");
-			GridBagLayout gbl_pNewListSuccess = new GridBagLayout();
-			pNewListSuccess.setLayout(gbl_pNewListSuccess);
+			String successHeader = "Een nieuwe lijst is gecreeërd!";
+			String successSub = "Een Excel bestand is aangemaakt als " + fileName;
+
+			confirmationPanel(successHeader, successSub);
 			
-			JLabel lNewListSuccessHeader = new JLabel("Een nieuwe lijst is gecreeërd!");
-			lNewListSuccessHeader.setFont(lNewListSuccessHeader.getFont().deriveFont(24f));
-			GridBagConstraints gbc_lNewListSuccessHeader = new GridBagConstraints();
-			gbc_lNewListSuccessHeader.gridx = 0;
-			gbc_lNewListSuccessHeader.gridy = 0;
-			pNewListSuccess.add(lNewListSuccessHeader, gbc_lNewListSuccessHeader);
-			
-			JLabel lNewListSuccessSub = new JLabel("Een Excel bestand is aangemaakt "
-					+ "als " + fileName);
-			lNewListSuccessSub.setFont(lNewListSuccessSub.getFont().deriveFont(18f));
-			GridBagConstraints gbc_lNewListSuccessSub = new GridBagConstraints();
-			gbc_lNewListSuccessSub.gridx = 0;
-			gbc_lNewListSuccessSub.gridy = 1;
-			pNewListSuccess.add(lNewListSuccessSub, gbc_lNewListSuccessSub);
-			
-			JButton pNewListBack = new JButton("Terug");
-			pNewListBack.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					cardLayout.show(pCardManager, "options");
-				}
-			});
-			pNewListBack.setPreferredSize(new Dimension(300, 100));
-			GridBagConstraints gbc_pNewListBack = new GridBagConstraints();
-			gbc_pNewListBack.insets = new Insets(10, 0, 0, 0);
-			gbc_pNewListBack.gridx = 0;
-			gbc_pNewListBack.gridy = 2;
-			pNewListSuccess.add(pNewListBack, gbc_pNewListBack);
-			
-			cardLayout.show(pCardManager, "newListSuccess");
+			cardLayout.show(pCardManager, "confirmation");
 		}		
 	}
 }

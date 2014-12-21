@@ -264,16 +264,46 @@ public class DBHandler {
 		try {		
 			stmt = c.createStatement();
 			
-			String sql = "SELECT Roommate.roomNumber as roomNumber, Roommate.rowid as rowid, "
-					+ "count(Tally.roommateId) AS total FROM Roommate LEFT JOIN Tally "
-					+ "ON Roommate.rowid = Tally.roommateId WHERE Tally.listId = " 
-					+ listId + " GROUP BY rowid;";
+			String sql = "SELECT Roommate.rowid as roommateId, count(Tally.roommateId) AS total "
+					+ "FROM Roommate LEFT JOIN Tally ON Roommate.rowid = Tally.roommateId "
+					+ "WHERE Tally.listId = " + listId + " GROUP BY roommateId;";
 						
 			ResultSet rs = stmt.executeQuery(sql);
 
 			while (rs.next()) {
-				result.put(rs.getInt("roomNumber"), rs.getInt("total"));
+				result.put(rs.getInt("roommateId"), rs.getInt("total"));
 			}
+			
+			stmt.close();
+			c.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Get all active roommate ids
+	 * @return result	All roommate ids by room number
+	 */
+	public static Map<Integer, Integer> getRoommateIds() {
+		Connection c = getConnection();
+		Statement stmt = null;
+		Map<Integer, Integer> result = new TreeMap<Integer, Integer>();
+		int listId = getLatestListId();
+		
+		try {
+			stmt = c.createStatement();
+			String sql = "SELECT rowid, roomNumber from Roommate WHERE active = 1";
+			
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while (rs.next()) {				
+				result.put(rs.getInt("roomNumber"), rs.getInt("rowid"));
+			}
+			
 			
 			stmt.close();
 			c.close();
