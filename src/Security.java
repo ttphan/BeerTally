@@ -62,4 +62,14 @@ public class Security {
 	public static void newPassword(char[] message) {
 		DBHandler.newPassword(encryptMd5(message).toString());
 	}
+	
+	/**
+	 * Only accept strings containing alphanumeric characters,
+	 * hyphens and underscores of length 1 to 16.
+	 * @param s		The string to be validated
+	 * @return		True if it's valid
+	 */
+	public static boolean isValid(String s) {
+		return s.matches("^[a-zA-Z0-9-_]{1,16}$");		
+	}
 }

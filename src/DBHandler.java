@@ -292,7 +292,6 @@ public class DBHandler {
 		Connection c = getConnection();
 		Statement stmt = null;
 		Map<Integer, Integer> result = new TreeMap<Integer, Integer>();
-		int listId = getLatestListId();
 		
 		try {
 			stmt = c.createStatement();
@@ -403,6 +402,27 @@ public class DBHandler {
 			stmt = c.createStatement();
 			String sql = "INSERT INTO List DEFAULT VALUES;";
 			
+			stmt.executeUpdate(sql);
+			
+			c.commit();
+			
+			stmt.close();
+			c.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void addNewTempTally(String name, int roomNumber) {
+		Connection c = getConnection();
+		Statement stmt = null;
+		
+		try {
+			stmt = c.createStatement();
+			String sql = "INSERT INTO Roommate (roomNumber, name) VALUES ("
+					+ roomNumber + ", '" + name + "');";
+					
 			stmt.executeUpdate(sql);
 			
 			c.commit();
