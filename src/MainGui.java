@@ -289,7 +289,7 @@ public class MainGui implements ActionListener {
 		pLeft.add(pQuotes, BorderLayout.SOUTH);
 		
 		ArrayList<String> quotes = QuoteParser.getQuotes();
-		//frame.pack();
+		frame.pack();
 		
 		for (String quote : quotes) {
 			pQuotes.add(new JLabel(quote));
