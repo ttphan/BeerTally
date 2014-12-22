@@ -98,6 +98,11 @@ public class MainGui implements ActionListener {
 	private JLabel lConfirmationSub;
 	
 	/**
+	 * Warning panel for removing a temporary group.
+	 */
+	private JPanel pRemoveTTWarning;
+	
+	/**
 	 * Apply button, commits the tallies to the database.
 	 */
 	private JButton bApplyTally;
@@ -131,6 +136,18 @@ public class MainGui implements ActionListener {
 	 * New list confirmation button
 	 */
 	private JButton bNewListYes;
+	
+	/**
+	 * Remove temporary tally group buttons
+	 */
+	private JButton bRemoveTempTally_1;
+	private JButton bRemoveTempTally_2;
+	private JButton bRemoveTempTally_3;
+	
+	/**
+	 * 'Room number' of the temporary tally group to be removed
+	 */
+	private int roomNumberRemoveTempTally;
 	
 	/**
 	 * Used to fetch the resolutions of the screen
@@ -198,11 +215,11 @@ public class MainGui implements ActionListener {
 		// Create and initialize generic confirmation panel
 		initializeConfirmationPanel();
 		
-		// Create and initialize left panel	
-		initializeLeftPanel();
-				
 		// Create and initialize right panel
 		initializeRightPanel();
+		
+		// Create and initialize left panel	
+		initializeLeftPanel();	
 								
 		// Create and initialize password panel
 		initializePassPanel();		
@@ -352,7 +369,6 @@ public class MainGui implements ActionListener {
 		bCancelTally = new JButton("Annuleren");
 		bCancelTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				BeerHandler.resetTallies();
 				resetDiff();
 			}
 		});
@@ -903,8 +919,8 @@ public class MainGui implements ActionListener {
 			int roomNumber = entry.getKey();
 			
 			// Prevents the labels from fucking up the layout.
-			tdL.setPreferredSize(new Dimension(30, 20));
-			ttL.setPreferredSize(new Dimension(30, 20));
+			tdL.setPreferredSize(new Dimension(40, 20));
+			ttL.setPreferredSize(new Dimension(40, 20));
 			
 			btn.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -1445,8 +1461,7 @@ public class MainGui implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCardManager, "tempTally");
 			}
-		});		
-		
+		});			
 		JButton bNewTempTallyOk = new JButton("Ok");
 		bNewTempTallyOk.setPreferredSize(new Dimension(150, 50));
 		bNewTempTallyOk.addActionListener(new ActionListener() {
@@ -1475,6 +1490,7 @@ public class MainGui implements ActionListener {
 			public void componentShown(ComponentEvent e) {
 				lInvalidName.setVisible(false);
 				tNewTempTally.requestFocus();
+				tNewTempTally.setText("");
 			}
 		});
 		
@@ -1491,49 +1507,145 @@ public class MainGui implements ActionListener {
 		gbc_lRemoveTempTallyHeader.gridy = 0;
 		pRemoveTempTally.add(lRemoveTempTallyHeader, gbc_lRemoveTempTallyHeader);
 		
-		JButton bTempTally_1 = new JButton("1");
-		bTempTally_1.setPreferredSize(new Dimension(200, 100));
-		bTempTally_1.setEnabled(false);
-		GridBagConstraints gbc_bTempTally_1 = new GridBagConstraints();
-		gbc_bTempTally_1.insets = new Insets(0, 0, 5, 5);
-		gbc_bTempTally_1.gridx = 0;
-		gbc_bTempTally_1.gridy = 1;
-		pRemoveTempTally.add(bTempTally_1, gbc_bTempTally_1);
+		bRemoveTempTally_1 = new JButton();
+		bRemoveTempTally_1.addActionListener(this);
+		bRemoveTempTally_1.setPreferredSize(new Dimension(200, 100));
+		bRemoveTempTally_1.setEnabled(false);
+		GridBagConstraints gbc_bRemoveTempTally_1 = new GridBagConstraints();
+		gbc_bRemoveTempTally_1.insets = new Insets(0, 0, 5, 5);
+		gbc_bRemoveTempTally_1.gridx = 0;
+		gbc_bRemoveTempTally_1.gridy = 1;
+		pRemoveTempTally.add(bRemoveTempTally_1, gbc_bRemoveTempTally_1);
 		
-		JButton bTempTally_2 = new JButton("2");
-		bTempTally_2.setPreferredSize(new Dimension(200, 100));
-		bTempTally_2.setEnabled(false);
-		GridBagConstraints gbc_bTempTally_2 = new GridBagConstraints();
-		gbc_bTempTally_2.insets = new Insets(0, 0, 5, 5);
-		gbc_bTempTally_2.gridx = 1;
-		gbc_bTempTally_2.gridy = 1;
-		pRemoveTempTally.add(bTempTally_2, gbc_bTempTally_2);
+		bRemoveTempTally_2 = new JButton();
+		bRemoveTempTally_2.addActionListener(this);
+		bRemoveTempTally_2.setPreferredSize(new Dimension(200, 100));
+		bRemoveTempTally_2.setEnabled(false);
+		GridBagConstraints gbc_bRemoveTempTally_2 = new GridBagConstraints();
+		gbc_bRemoveTempTally_2.insets = new Insets(0, 0, 5, 5);
+		gbc_bRemoveTempTally_2.gridx = 1;
+		gbc_bRemoveTempTally_2.gridy = 1;
+		pRemoveTempTally.add(bRemoveTempTally_2, gbc_bRemoveTempTally_2);
 		
-		JButton bTempTally_3 = new JButton("3");
-		bTempTally_3.setPreferredSize(new Dimension(200, 100));
-		bTempTally_3.setEnabled(false);
-		GridBagConstraints gbc_bTempTally_3 = new GridBagConstraints();
-		gbc_bTempTally_3.insets = new Insets(0, 0, 5, 0);
-		gbc_bTempTally_3.gridx = 2;
-		gbc_bTempTally_3.gridy = 1;
-		pRemoveTempTally.add(bTempTally_3, gbc_bTempTally_3);
+		bRemoveTempTally_3 = new JButton();
+		bRemoveTempTally_3.addActionListener(this);
+		bRemoveTempTally_3.setPreferredSize(new Dimension(200, 100));
+		bRemoveTempTally_3.setEnabled(false);
+		GridBagConstraints gbc_bRemoveTempTally_3 = new GridBagConstraints();
+		gbc_bRemoveTempTally_3.insets = new Insets(0, 0, 5, 0);
+		gbc_bRemoveTempTally_3.gridx = 2;
+		gbc_bRemoveTempTally_3.gridy = 1;
+		pRemoveTempTally.add(bRemoveTempTally_3, gbc_bRemoveTempTally_3);
 		
 		JButton bRemoveTempTallyBack = new JButton("Terug");
-		bTempTallyBack.setPreferredSize(new Dimension(200, 100));
+		bRemoveTempTallyBack.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "tempTally");
+			}			
+		});
+		bRemoveTempTallyBack.setPreferredSize(new Dimension(200, 100));
 		GridBagConstraints gbc_bRemoveTempTallyBack = new GridBagConstraints();
 		gbc_bRemoveTempTallyBack.insets = new Insets(0, 0, 5, 0);
 		gbc_bRemoveTempTallyBack.gridx = 1;
 		gbc_bRemoveTempTallyBack.gridy = 2;
-		pRemoveTempTally.add(bRemoveTempTallyBack, gbc_bRemoveTempTallyBack);
+		pRemoveTempTally.add(bRemoveTempTallyBack, gbc_bRemoveTempTallyBack);	
 		
+		pRemoveTempTally.addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentShown(ComponentEvent e) {
+				if (names.containsKey(19)) {
+					bRemoveTempTally_1.setEnabled(true);
+					bRemoveTempTally_1.setText(names.get(19));
+				}
+				else {
+					bRemoveTempTally_1.setEnabled(false);
+					bRemoveTempTally_1.setText("1");
+				}
+				
+				if (names.containsKey(20)) {
+					bRemoveTempTally_2.setEnabled(true);
+					bRemoveTempTally_2.setText(names.get(20));
+				}
+				else {
+					bRemoveTempTally_2.setEnabled(false);
+					bRemoveTempTally_2.setText("2");
+				}
+				
+				if (names.containsKey(21)) {
+					bRemoveTempTally_3.setEnabled(true);
+					bRemoveTempTally_3.setText(names.get(21));
+				}
+				else {
+					bRemoveTempTally_3.setEnabled(false);
+					bRemoveTempTally_3.setText("3");
+				}
+			}
+		});
+		
+		// Remove temp tally warning panel
+		pRemoveTTWarning = new JPanel();
+		pCardManager.add(pRemoveTTWarning, "removeTempTallyWarning");
+		pRemoveTTWarning.setLayout(new GridBagLayout());	
+	}
+	
+	private void removeTempTallyWarningPanel() {
+		pRemoveTTWarning.removeAll();
+		String name = names.get(roomNumberRemoveTempTally);
+		
+		JLabel lHeader = new JLabel("Dit zal de groep '" + name + "' verwijderen!");
+		lHeader.setFont(lHeader.getFont().deriveFont(24f));
+		GridBagConstraints gbc_lHeader = new GridBagConstraints();
+		gbc_lHeader.gridx = 0;
+		gbc_lHeader.gridy = 0;
+		pRemoveTTWarning.add(lHeader, gbc_lHeader);
+		
+		JLabel lSub = new JLabel("Weet je het zeker?");
+		lSub.setFont(lSub.getFont().deriveFont(18f));
+		GridBagConstraints gbc_lSub = new GridBagConstraints();
+		gbc_lSub.gridx = 0;
+		gbc_lSub.gridy = 1;
+		pRemoveTTWarning.add(lSub, gbc_lSub);
+		
+		JPanel pConfirm = new JPanel();
+		pConfirm.setLayout(new FlowLayout(FlowLayout.LEADING, 30, 30));
+		GridBagConstraints gbc_pConfirm = new GridBagConstraints();
+		gbc_pConfirm.gridx = 0;
+		gbc_pConfirm.gridy = 2;
+		pRemoveTTWarning.add(pConfirm, gbc_pConfirm);
+
+		JButton bYes = new JButton("Ja");
+		bYes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String name = names.get(roomNumberRemoveTempTally);
+				RoommateHandler.removeTempTally(roomNumberRemoveTempTally);
+				refresh();			
+				String header = "De groep '" + name + "' is verwijderd!";
+				
+				confirmationPanel(header, "");
+			}
+		});
+		bYes.setPreferredSize(new Dimension(300, 100));
+		
+		JButton bNo = new JButton("Nee");
+		bNo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "removeTempTally");
+			}
+		});
+		bNo.setPreferredSize(new Dimension(300, 100));
+		
+		pConfirm.add(bYes);
+		pConfirm.add(bNo);
+		
+		cardLayout.show(pCardManager, "removeTempTallyWarning");
 	}
 	
 	private void addNewTempTally(String name) {
-		int roomNumber = RoommateHandler.addNewTempTally(name);
+		int roomNumber = RoommateHandler.addTempTally(name);
 		refresh();
 		
 		String header = "Een nieuwe turfgroep is toegevoegd!";
-		String sub = name + " is toegevoegd op plaats " + roomNumber;
+		String sub = "'" + name + "' is toegevoegd op plaats plaats " + roomNumber;
 		
 		confirmationPanel(header, sub);
 	}
@@ -1562,15 +1674,14 @@ public class MainGui implements ActionListener {
 	private void applyTallies() {
 		updateHistory();
 		BeerHandler.applyTallies();		
-		refresh();
-			
-		resetDiff();	
+		refresh();	
 	}
 	
 	/**
 	 * Reset the temporary tally count.
 	 */
 	private void resetDiff() {
+		BeerHandler.resetTallies();
 		bApplyTally.setEnabled(false);
 		bCancelTally.setEnabled(false);
 		
@@ -1612,51 +1723,43 @@ public class MainGui implements ActionListener {
 		taHistory.append("---------------------------------------------------------\n");
 	}
 	
-	/**
-	 * Resets the uncommitted tallies and refreshes the tally count.
-	 */
-	private void fullReset() {
-		resetDiff();
-			
-		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet())
-		{
-			RoommateGUI rmGui = (RoommateGUI) entry.getValue();
-			JLabel ttL = rmGui.getTotalTallyLabel();
-
-			ttL.setText("0");
-		}
-	}
-	
 	private void refresh() {
 		RoommateHandler.refresh();
+		resetDiff();
 		names = RoommateHandler.getNames();
 		roommateIds = RoommateHandler.getRoommateIds();
 		
 		Map<Integer, Integer> tallies = BeerHandler.getCurrentTallies();
-		
-		for (Map.Entry<Integer, Integer> entry : roommateIds.entrySet())
-		{
-			int roommateId = entry.getValue();
+		for (Map.Entry<Integer, RoommateGUI> entry : mpRoommates.entrySet()) {
 			int roomNumber = entry.getKey();
-			RoommateGUI rmGui = mpRoommates.get(roomNumber);
+			RoommateGUI rmGui = entry.getValue();
 			JButton btn = rmGui.getTallyButton();
-			JLabel ttL = rmGui.getTotalTallyLabel();			
-
-			if (tallies.containsKey(roommateId)) {
-				ttL.setText(Integer.toString(tallies.get(roommateId)));
+			JLabel ttL = rmGui.getTotalTallyLabel();
+			
+			if (roommateIds.containsKey(roomNumber)) {
+				int roommateId = roommateIds.get(roomNumber);
+				
+				if (tallies.containsKey(roommateId)) {
+					ttL.setText(Integer.toString(tallies.get(roommateId)));
+				}
+				else {
+					ttL.setText("0");
+				}
+				
+				if (names.containsKey(roomNumber)) {
+					btn.setText(names.get(roomNumber));
+					btn.setEnabled(true);
+				}
 			}
 			else {
+				btn.setText(Integer.toString(roomNumber));
+				btn.setEnabled(false);
 				ttL.setText("0");
 			}
 			
-			if (names.containsKey(roomNumber)) {
-				btn.setText(names.get(roomNumber));
-				btn.setEnabled(true);
-			}
-			else {
-				btn.setEnabled(false);
-			}
+			
 		}
+		
 	}
 
 	@Override
@@ -1664,14 +1767,33 @@ public class MainGui implements ActionListener {
 		// New list confirmation button
 		if (e.getSource() == bNewListYes) {
 			String fileName = ExcelHandler.writeToExcelFile();
+			
+			// Close temporary tally groups
+			RoommateHandler.removeTempTally(19);
+			RoommateHandler.removeTempTally(20);
+			RoommateHandler.removeTempTally(21);
+			
 			BeerHandler.newList();
 
-			fullReset();			
+			refresh();			
 			
 			String successHeader = "Een nieuwe lijst is gecreëerd!";
 			String successSub = "Een Excel bestand is aangemaakt als " + fileName;
 
 			confirmationPanel(successHeader, successSub);
-		}		
+		}
+		// Remove temporary tally group buttons
+		else if (e.getSource() == bRemoveTempTally_1) {
+			roomNumberRemoveTempTally = 19;
+			removeTempTallyWarningPanel();
+		}
+		else if (e.getSource() == bRemoveTempTally_2) {
+			roomNumberRemoveTempTally = 20;
+			removeTempTallyWarningPanel();
+		}
+		else if (e.getSource() == bRemoveTempTally_3) {
+			roomNumberRemoveTempTally = 21;
+			removeTempTallyWarningPanel();
+		}
 	}
 }

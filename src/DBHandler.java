@@ -414,7 +414,12 @@ public class DBHandler {
 		}
 	}
 	
-	public static void addNewTempTally(String name, int roomNumber) {
+	/**
+	 * Adds a temporary tally group
+	 * @param name			Name of the group
+	 * @param roomNumber	'Room number' of the group (19, 20 or 21)
+	 */
+	public static void addTempTally(String name, int roomNumber) {
 		Connection c = getConnection();
 		Statement stmt = null;
 		
@@ -432,6 +437,31 @@ public class DBHandler {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Removes a temporary tally group
+	 * @param roomNumber	'Room number' of the group (19, 20 or 21)
+	 */
+	public static void removeTempTally(int roomNumber) {
+		Connection c = getConnection();
+		Statement stmt = null;
+		
+		try {
+			stmt = c.createStatement();
+			String sql = "UPDATE Roommate SET active = 0 WHERE Roomnumber = " 
+					+ roomNumber + ";";
+			
+			stmt.executeUpdate(sql);
+			
+			c.commit();
+			
+			stmt.close();
+			c.close();
+			
+		} catch (Exception e) {
+			e.printStackTrace();;
 		}
 	}
 	
