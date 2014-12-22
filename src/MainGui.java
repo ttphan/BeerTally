@@ -181,6 +181,8 @@ public class MainGui implements ActionListener {
 		try {
 			Properties props = new Properties();
 			props.put("windowDecoration", "off");
+			props.put("controlTextFont", "Arial 10");
+			
 			HiFiLookAndFeel.setCurrentTheme(props);
 			
 			UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
