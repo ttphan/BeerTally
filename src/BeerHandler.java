@@ -71,6 +71,9 @@ public class BeerHandler {
 		return tempTally;
 	}
 	
+	/**
+	 * Creates a new list, closing the previous one.
+	 */
 	public static void newList() {
 		DBHandler.newList();
 		resetTallies();

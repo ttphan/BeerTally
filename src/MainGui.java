@@ -9,6 +9,8 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import com.jtattoo.plaf.hifi.HiFiLookAndFeel;
+
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
@@ -175,6 +178,15 @@ public class MainGui implements ActionListener {
 	 * Create the application.
 	 */
 	public MainGui() {	
+		try {
+			Properties props = new Properties();
+			props.put("windowDecoration", "off");
+			HiFiLookAndFeel.setCurrentTheme(props);
+			
+			UIManager.setLookAndFeel("com.jtattoo.plaf.hifi.HiFiLookAndFeel");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		initialize();
 	}
 
@@ -192,6 +204,7 @@ public class MainGui implements ActionListener {
 		
 		// Full screen without menu
 		frame.setUndecorated(true);
+		
 		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
@@ -288,8 +301,19 @@ public class MainGui implements ActionListener {
 		
 		pLeft.add(pQuotes, BorderLayout.SOUTH);
 		
+		refreshQuotes();
+		
+		initializeTallyPanel();
+	}
+	
+	/**
+	 * Refresh quotes
+	 */
+	private void refreshQuotes() {
+		pQuotes.removeAll();
+		
 		ArrayList<String> quotes = QuoteParser.getQuotes();
-		frame.pack();
+		//frame.pack();
 		
 		for (String quote : quotes) {
 			pQuotes.add(new JLabel(quote));
@@ -297,8 +321,6 @@ public class MainGui implements ActionListener {
 			// Add spacing between quotes
 			pQuotes.add(Box.createRigidArea(new Dimension(pQuotes.getWidth(), 0)));
 		}
-		
-		initializeTallyPanel();
 	}
 	
 	/**
@@ -1105,6 +1127,21 @@ public class MainGui implements ActionListener {
 		gbc_bNewPassword.gridy = 4;
 		pOptions.add(bNewPassword, gbc_bNewPassword);
 		
+		JButton bAddQuote = new JButton("Een quote toevoegen");
+		bAddQuote.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cardLayout.show(pCardManager, "addQuote");
+			}
+		});		
+		bAddQuote.setPreferredSize(new Dimension(250, 100));
+		GridBagConstraints gbc_bAddQuote = new GridBagConstraints();
+		gbc_bAddQuote.fill = GridBagConstraints.HORIZONTAL;
+		gbc_bAddQuote.insets = new Insets(0, 0, 10, 0);
+		gbc_bAddQuote.gridx = 0;
+		gbc_bAddQuote.gridy = 5;
+		pOptions.add(bAddQuote, gbc_bAddQuote);
+		
+		
 		JButton bOptionsBack = new JButton("Terug");
 		bOptionsBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1116,7 +1153,7 @@ public class MainGui implements ActionListener {
 		gbc_bOptionsBack.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bOptionsBack.insets = new Insets(0, 0, 10, 0);
 		gbc_bOptionsBack.gridx = 0;
-		gbc_bOptionsBack.gridy = 5;
+		gbc_bOptionsBack.gridy = 6;
 		pOptions.add(bOptionsBack, gbc_bOptionsBack);	
 	}
 
