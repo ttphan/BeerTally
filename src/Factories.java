@@ -25,7 +25,8 @@ public class Factories {
 		totalTallyLabel.setPreferredSize(new Dimension(40, 20));
 
 		JLabel diffTallyLabel = new JLabel("0");
-		totalTallyLabel.setPreferredSize(new Dimension(40, 20));
+		diffTallyLabel.setPreferredSize(new Dimension(40, 20));
+		
 		
 		return new RoommateGUI(tallyButton, totalTallyLabel, diffTallyLabel);
 	}

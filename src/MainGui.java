@@ -451,7 +451,7 @@ public class MainGui implements ActionListener {
 						
 			// Define positions
 			GridBagConstraints c = new GridBagConstraints();
-			c.insets = new Insets(0, 0, 5, 5);
+			c.insets = new Insets(5, 0, 0, 5);
 			c.weightx = 1.0;
 			c.weighty = 1.0;
 			
