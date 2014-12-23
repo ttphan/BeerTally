@@ -43,7 +43,7 @@ public class MainGui implements ActionListener {
 	/**
 	 * Card manager panel, handles the visibility of the panels.
 	 */
-	private JPanel pCardManager;
+	private JPanel pCard;
 	
 	/**
 	 * Card layout, used to switch between panels
@@ -211,15 +211,15 @@ public class MainGui implements ActionListener {
 		frame.getContentPane().setLayout(null);
 		
 		// Set up card layout
-		pCardManager = new JPanel();
-		pCardManager.setBounds(0, 0, screen.width, screen.height);
-		frame.getContentPane().add(pCardManager);
-		pCardManager.setLayout(new CardLayout(0, 0));
-		cardLayout = (CardLayout)(pCardManager.getLayout());
+		pCard = new JPanel();
+		pCard.setBounds(0, 0, screen.width, screen.height);
+		frame.getContentPane().add(pCard);
+		pCard.setLayout(new CardLayout(0, 0));
+		cardLayout = (CardLayout)(pCard.getLayout());
 			
 		// Split the pane in two sides, left the buttons, right the history log and apply button
 		spMain = new JSplitPane();
-		pCardManager.add(spMain, "main");
+		pCard.add(spMain, "main");
 		
 		// Divider settings
 		spMain.setEnabled(false);
@@ -249,6 +249,9 @@ public class MainGui implements ActionListener {
 		
 		// Create and initialize temporary tally panel
 		initializeTempTallyPanel();
+		
+		// Create and initialize add quote panel
+		initializeAddQuotePanel();
 	}
 	
 	/**
@@ -258,7 +261,7 @@ public class MainGui implements ActionListener {
 		pConfirmation = new JPanel();
 		GridBagLayout gbl_pConfirmation = new GridBagLayout();
 		pConfirmation.setLayout(gbl_pConfirmation);
-		pCardManager.add(pConfirmation, "confirmation");
+		pCard.add(pConfirmation, "confirmation");
 		
 		lConfirmationHeader = new JLabel("");
 		lConfirmationHeader.setFont(lConfirmationHeader.getFont().deriveFont(24f));
@@ -277,7 +280,7 @@ public class MainGui implements ActionListener {
 		JButton bConfirmationBack = new JButton("Terug");
 		bConfirmationBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "main");
+				cardLayout.show(pCard, "main");
 			}
 		});
 		bConfirmationBack.setPreferredSize(new Dimension(300, 100));
@@ -314,7 +317,7 @@ public class MainGui implements ActionListener {
 		pQuotes.removeAll();
 		
 		ArrayList<String> quotes = QuoteParser.getQuotes();
-		//frame.pack();
+		frame.pack();
 		
 		for (String quote : quotes) {
 			pQuotes.add(new JLabel(quote));
@@ -376,7 +379,7 @@ public class MainGui implements ActionListener {
 		JButton bOptions = new JButton("Opties");				
 		bOptions.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "password");
+				cardLayout.show(pCard, "password");
 			}
 		});
 		
@@ -412,12 +415,6 @@ public class MainGui implements ActionListener {
 		pLeft.add(pTallyButtons, BorderLayout.CENTER);
 		
 		GridBagLayout gbl_pTallyButtons = new GridBagLayout();
-		gbl_pTallyButtons.columnWidths = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_pTallyButtons.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_pTallyButtons.columnWeights = new double[]{1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 
-				1.0, 1.0, Double.MIN_VALUE};
-		gbl_pTallyButtons.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 
-				1.0, 0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE};
 		pTallyButtons.setLayout(gbl_pTallyButtons);
 		
 		for (int i = 0; i < 21; i++) {
@@ -455,9 +452,12 @@ public class MainGui implements ActionListener {
 			// Define positions
 			GridBagConstraints c = new GridBagConstraints();
 			c.insets = new Insets(0, 0, 5, 5);
+			c.weightx = 1.0;
+			c.weighty = 1.0;
+			
 			
 			// Int conversion rounds down
-			int xOffset = (int) (i / 7) * 3 + 1;
+			int xOffset = (int) (i / 7) * 3;
 			
 			/**
 			 * Tally buttons
@@ -465,7 +465,7 @@ public class MainGui implements ActionListener {
 			c.gridx = xOffset;
 			
 			// 7 roommates per row
-			c.gridy = ((i % 7) * 2) + 2;
+			c.gridy = i % 7;
 			
 			pTallyButtons.add(bTally, c);
 			
@@ -486,6 +486,7 @@ public class MainGui implements ActionListener {
 			pTallyButtons.add(lDiffTally, c);
 		}
 		
+		
 		refresh();		
 	}
 	
@@ -494,7 +495,7 @@ public class MainGui implements ActionListener {
 	 */
 	private void initializePassPanel() {
 		pPassword = new JPanel();
-		pCardManager.add(pPassword, "password");
+		pCard.add(pPassword, "password");
 		
 		JLabel lWrongPass = new JLabel("Onjuist wachtwoord!");
 		lWrongPass.setForeground(Color.RED);
@@ -519,7 +520,7 @@ public class MainGui implements ActionListener {
 			public void keyPressed(KeyEvent e) {
 				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 					if (Security.checkPassword(passwordField.getPassword())) {			
-						cardLayout.show(pCardManager, "options");
+						cardLayout.show(pCard, "options");
 					}
 					else {
 						passwordField.requestFocus();
@@ -529,7 +530,7 @@ public class MainGui implements ActionListener {
 					passwordField.setText("");
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					cardLayout.show(pCardManager, "main");
+					cardLayout.show(pCard, "main");
 				}
 			}
 		});
@@ -540,7 +541,7 @@ public class MainGui implements ActionListener {
 		JButton bCancelPass = new JButton("Terug");
 		bCancelPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "main");
+				cardLayout.show(pCard, "main");
 			}
 		});
 		GridBagConstraints gbc_bCancelPass = new GridBagConstraints();
@@ -553,7 +554,7 @@ public class MainGui implements ActionListener {
 		bEnterPass.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (Security.checkPassword(passwordField.getPassword())) {			
-					cardLayout.show(pCardManager, "options");					
+					cardLayout.show(pCard, "options");					
 				}
 				else {
 					passwordField.requestFocus();
@@ -585,14 +586,14 @@ public class MainGui implements ActionListener {
 	 */
 	private void initializeOptionsPanel() {
 		JPanel pOptions = new JPanel();
-		pCardManager.add(pOptions, "options");
+		pCard.add(pOptions, "options");
 		GridBagLayout gbl_pOptions = new GridBagLayout();
 		pOptions.setLayout(gbl_pOptions);
 		
 		JButton bNewList = new JButton("Nieuwe lijst maken");
 		bNewList.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "newList");
+				cardLayout.show(pCard, "newList");
 			}
 		});
 		bNewList.setPreferredSize(new Dimension(250, 100));
@@ -626,7 +627,7 @@ public class MainGui implements ActionListener {
 		JButton bTempTally = new JButton("Extra turfers");
 		bTempTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "tempTally");
+				cardLayout.show(pCard, "tempTally");
 			}
 		});
 		bTempTally.setPreferredSize(new Dimension(250, 100));
@@ -640,7 +641,7 @@ public class MainGui implements ActionListener {
 		JButton bNewPassword = new JButton("Nieuw wachtwoord");
 		bNewPassword.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "newPass");
+				cardLayout.show(pCard, "newPass");
 			}
 		});	
 		bNewPassword.setPreferredSize(new Dimension(250, 100));
@@ -654,7 +655,7 @@ public class MainGui implements ActionListener {
 		JButton bAddQuote = new JButton("Een quote toevoegen");
 		bAddQuote.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "addQuote");
+				cardLayout.show(pCard, "addQuote");
 			}
 		});		
 		bAddQuote.setPreferredSize(new Dimension(250, 100));
@@ -669,7 +670,7 @@ public class MainGui implements ActionListener {
 		JButton bOptionsBack = new JButton("Terug");
 		bOptionsBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "main");
+				cardLayout.show(pCard, "main");
 			}
 		});		
 		bOptionsBack.setPreferredSize(new Dimension(250, 100));
@@ -682,11 +683,18 @@ public class MainGui implements ActionListener {
 	}
 
 	/**
+	 * Initialize add quote panel
+	 */
+	private void initializeAddQuotePanel() {
+		JPanel pAddQuote = new JPanel();
+		pAddQuote.setLayout(new GridBagLayout());
+	}
+	/**
 	 * Initialize new list panel
 	 */
 	private void initializeNewListPanel() {
 		JPanel pNewList = new JPanel();
-		pCardManager.add(pNewList, "newList");
+		pCard.add(pNewList, "newList");
 		GridBagLayout gbl_pNewList = new GridBagLayout();
 		pNewList.setLayout(gbl_pNewList);
 		
@@ -719,7 +727,7 @@ public class MainGui implements ActionListener {
 		JButton bNewListNo = new JButton("Nee");
 		bNewListNo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "options");
+				cardLayout.show(pCard, "options");
 			}
 		});
 		bNewListNo.setPreferredSize(new Dimension(300, 100));
@@ -733,14 +741,14 @@ public class MainGui implements ActionListener {
 	 */
 	private void initializeNewPassPanel() {
 		JPanel pNewPass = new JPanel();
-		pCardManager.add(pNewPass, "newPass");
+		pCard.add(pNewPass, "newPass");
 		GridBagLayout gbl_pNewPass = new GridBagLayout();
 		pNewPass.setLayout(gbl_pNewPass);
 		
 		JPanel pNewPassConfirm = new JPanel();
 		GridBagLayout gbl_pNewPassConfirm = new GridBagLayout();
 		pNewPassConfirm.setLayout(gbl_pNewPassConfirm);
-		pCardManager.add(pNewPassConfirm, "newPassConfirm");
+		pCard.add(pNewPassConfirm, "newPassConfirm");
 		
 		JPanel pNewPassSub = new JPanel();
 		GridBagLayout gbl_pNewPassSub = new GridBagLayout();
@@ -772,7 +780,7 @@ public class MainGui implements ActionListener {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					cardLayout.show(pCardManager, "options");
+					cardLayout.show(pCard, "options");
 				}
 			}
 		});
@@ -819,7 +827,7 @@ public class MainGui implements ActionListener {
 					newPassConfirm.setText("");
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					cardLayout.show(pCardManager, "options");
+					cardLayout.show(pCard, "options");
 				}
 			}
 		});
@@ -834,7 +842,7 @@ public class MainGui implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				lInvalidSize.setVisible(false);
 				lNotMatching.setVisible(false);
-				cardLayout.show(pCardManager, "options");
+				cardLayout.show(pCard, "options");
 			}
 		});
 		GridBagConstraints gbc_bCancelNewPass = new GridBagConstraints();
@@ -902,14 +910,14 @@ public class MainGui implements ActionListener {
 		JPanel pTempTally = new JPanel();
 		GridBagLayout gbl_pTempTally = new GridBagLayout();
 		pTempTally.setLayout(gbl_pTempTally);
-		pCardManager.add(pTempTally, "tempTally");
+		pCard.add(pTempTally, "tempTally");
 		
 		JButton bNewTempTally = new JButton("Nieuw extra turfgroep");
 		bNewTempTally.setEnabled(false);
 		bNewTempTally.setPreferredSize(new Dimension(250, 100));
 		bNewTempTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "newTempTally");
+				cardLayout.show(pCard, "newTempTally");
 			}
 		});	
 		GridBagConstraints gbc_bNewTempTally = new GridBagConstraints();
@@ -924,7 +932,7 @@ public class MainGui implements ActionListener {
 		bRemoveTempTally.setPreferredSize(new Dimension(250, 100));
 		bRemoveTempTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "removeTempTally");
+				cardLayout.show(pCard, "removeTempTally");
 			}
 		});	
 		GridBagConstraints gbc_bRemoveTempTally = new GridBagConstraints();
@@ -938,7 +946,7 @@ public class MainGui implements ActionListener {
 		bTempTallyBack.setPreferredSize(new Dimension(250, 100));
 		bTempTallyBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "options");
+				cardLayout.show(pCard, "options");
 			}
 		});	
 		GridBagConstraints gbc_bTempTallyBack = new GridBagConstraints();
@@ -971,7 +979,7 @@ public class MainGui implements ActionListener {
 		// New temporary tally panel
 		JPanel pNewTempTally = new JPanel();
 		pNewTempTally.setLayout(new GridBagLayout());
-		pCardManager.add(pNewTempTally, "newTempTally");
+		pCard.add(pNewTempTally, "newTempTally");
 
 		JLabel lInvalidName = new JLabel("Ongeldige naam!");
 		lInvalidName.setForeground(Color.RED);
@@ -1000,7 +1008,7 @@ public class MainGui implements ActionListener {
 					}
 				}
 				else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-					cardLayout.show(pCardManager, "tempTally");
+					cardLayout.show(pCard, "tempTally");
 				}
 			}
 		});
@@ -1020,7 +1028,7 @@ public class MainGui implements ActionListener {
 		bNewTempTallyBack.setPreferredSize(new Dimension(150, 50));
 		bNewTempTallyBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "tempTally");
+				cardLayout.show(pCard, "tempTally");
 			}
 		});			
 		JButton bNewTempTallyOk = new JButton("Ok");
@@ -1058,7 +1066,7 @@ public class MainGui implements ActionListener {
 		// Remove temporary tally panel
 		JPanel pRemoveTempTally = new JPanel();
 		pRemoveTempTally.setLayout(new GridBagLayout());
-		pCardManager.add(pRemoveTempTally, "removeTempTally");
+		pCard.add(pRemoveTempTally, "removeTempTally");
 		
 		JLabel lRemoveTempTallyHeader = new JLabel("Kies een groep");
 		lRemoveTempTallyHeader.setFont(lRemoveTempTallyHeader.getFont().deriveFont(24f));
@@ -1101,7 +1109,7 @@ public class MainGui implements ActionListener {
 		JButton bRemoveTempTallyBack = new JButton("Terug");
 		bRemoveTempTallyBack.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "tempTally");
+				cardLayout.show(pCard, "tempTally");
 			}			
 		});
 		bRemoveTempTallyBack.setPreferredSize(new Dimension(200, 100));
@@ -1145,7 +1153,7 @@ public class MainGui implements ActionListener {
 		
 		// Remove temp tally warning panel
 		pRemoveTTWarning = new JPanel();
-		pCardManager.add(pRemoveTTWarning, "removeTempTallyWarning");
+		pCard.add(pRemoveTTWarning, "removeTempTallyWarning");
 		pRemoveTTWarning.setLayout(new GridBagLayout());	
 	}
 	
@@ -1190,7 +1198,7 @@ public class MainGui implements ActionListener {
 		JButton bNo = new JButton("Nee");
 		bNo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCardManager, "removeTempTally");
+				cardLayout.show(pCard, "removeTempTally");
 			}
 		});
 		bNo.setPreferredSize(new Dimension(300, 100));
@@ -1198,7 +1206,7 @@ public class MainGui implements ActionListener {
 		pConfirm.add(bYes);
 		pConfirm.add(bNo);
 		
-		cardLayout.show(pCardManager, "removeTempTallyWarning");
+		cardLayout.show(pCard, "removeTempTallyWarning");
 	}
 	
 	private void addNewTempTally(String name) {
@@ -1226,7 +1234,7 @@ public class MainGui implements ActionListener {
 			lConfirmationSub.setVisible(true);
 			lConfirmationSub.setText(sub);
 		}
-		cardLayout.show(pCardManager, "confirmation");
+		cardLayout.show(pCard, "confirmation");
 	}
 	
 	/**
