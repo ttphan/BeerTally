@@ -596,7 +596,7 @@ public class MainGui implements ActionListener {
 				cardLayout.show(pCard, "newList");
 			}
 		});
-		bNewList.setPreferredSize(new Dimension(250, 100));
+		bNewList.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bNewList = new GridBagConstraints();
 		gbc_bNewList.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bNewList.anchor = GridBagConstraints.NORTH;
@@ -606,7 +606,7 @@ public class MainGui implements ActionListener {
 		pOptions.add(bNewList, gbc_bNewList);
 		
 		JButton bNewRoommate = new JButton("Nieuwe huisgenoot");
-		bNewRoommate.setPreferredSize(new Dimension(250, 100));
+		bNewRoommate.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bNewRoommate = new GridBagConstraints();
 		gbc_bNewRoommate.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bNewRoommate.anchor = GridBagConstraints.NORTH;
@@ -616,7 +616,7 @@ public class MainGui implements ActionListener {
 		pOptions.add(bNewRoommate, gbc_bNewRoommate);
 		
 		JButton bInternMove = new JButton("Interne verhuizing");
-		bInternMove.setPreferredSize(new Dimension(250, 100));
+		bInternMove.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bInternMove = new GridBagConstraints();
 		gbc_bInternMove.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bInternMove.insets = new Insets(0, 0, 10, 0);
@@ -630,7 +630,7 @@ public class MainGui implements ActionListener {
 				cardLayout.show(pCard, "tempTally");
 			}
 		});
-		bTempTally.setPreferredSize(new Dimension(250, 100));
+		bTempTally.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bTempTally = new GridBagConstraints();
 		gbc_bTempTally.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bTempTally.insets = new Insets(0, 0, 10, 0);
@@ -644,7 +644,7 @@ public class MainGui implements ActionListener {
 				cardLayout.show(pCard, "newPass");
 			}
 		});	
-		bNewPassword.setPreferredSize(new Dimension(250, 100));
+		bNewPassword.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bNewPassword = new GridBagConstraints();
 		gbc_bNewPassword.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bNewPassword.insets = new Insets(0, 0, 10, 0);
@@ -658,7 +658,7 @@ public class MainGui implements ActionListener {
 				cardLayout.show(pCard, "addQuote");
 			}
 		});		
-		bAddQuote.setPreferredSize(new Dimension(250, 100));
+		bAddQuote.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bAddQuote = new GridBagConstraints();
 		gbc_bAddQuote.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bAddQuote.insets = new Insets(0, 0, 10, 0);
@@ -673,7 +673,7 @@ public class MainGui implements ActionListener {
 				cardLayout.show(pCard, "main");
 			}
 		});		
-		bOptionsBack.setPreferredSize(new Dimension(250, 100));
+		bOptionsBack.setPreferredSize(new Dimension(250, 80));
 		GridBagConstraints gbc_bOptionsBack = new GridBagConstraints();
 		gbc_bOptionsBack.fill = GridBagConstraints.HORIZONTAL;
 		gbc_bOptionsBack.insets = new Insets(0, 0, 10, 0);
@@ -1290,6 +1290,8 @@ public class MainGui implements ActionListener {
 			}
 		}
 		taHistory.append("---------------------------------------------------------\n");
+		
+		taHistory.setCaretPosition(taHistory.getDocument().getLength());
 	}
 	
 	private void refresh() {
