@@ -6,9 +6,14 @@
  */
 
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 
 public class Factories {
@@ -29,5 +34,18 @@ public class Factories {
 		
 		
 		return new RoommateGUI(tallyButton, totalTallyLabel, diffTallyLabel);
+	}
+	
+	public static JButton menuButtonFactory(String title, JPanel panel, int index) {
+		JButton button = new JButton(title);
+		button.setPreferredSize(new Dimension(250, 80));
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(0, 0, 10, 0);
+		gbc.gridx = 0;
+		gbc.gridy = index;
+		panel.add(button, gbc);
+		
+		return button;
 	}
 }

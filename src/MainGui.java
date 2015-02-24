@@ -250,6 +250,9 @@ public class MainGui implements ActionListener {
 		// Create and initialize temporary tally panel
 		initializeTempTallyPanel();
 		
+		// Create and initialize quotes main panel
+		initializeQuotesPanel();
+		
 		// Create and initialize add quote panel
 		initializeAddQuotePanel();
 	}
@@ -590,105 +593,67 @@ public class MainGui implements ActionListener {
 		GridBagLayout gbl_pOptions = new GridBagLayout();
 		pOptions.setLayout(gbl_pOptions);
 		
-		JButton bNewList = new JButton("Nieuwe lijst maken");
-		bNewList.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "newList");
-			}
-		});
-		bNewList.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bNewList = new GridBagConstraints();
-		gbc_bNewList.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bNewList.anchor = GridBagConstraints.NORTH;
-		gbc_bNewList.insets = new Insets(0, 0, 10, 0);
-		gbc_bNewList.gridx = 0;
-		gbc_bNewList.gridy = 0;
-		pOptions.add(bNewList, gbc_bNewList);
+		Factories.menuButtonFactory("Nieuwe lijst maken", pOptions, 0)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "newList");
+				}
+			});
 		
-		JButton bNewRoommate = new JButton("Nieuwe huisgenoot");
-		bNewRoommate.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bNewRoommate = new GridBagConstraints();
-		gbc_bNewRoommate.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bNewRoommate.anchor = GridBagConstraints.NORTH;
-		gbc_bNewRoommate.insets = new Insets(0, 0, 10, 0);
-		gbc_bNewRoommate.gridx = 0;
-		gbc_bNewRoommate.gridy = 1;
-		pOptions.add(bNewRoommate, gbc_bNewRoommate);
+		Factories.menuButtonFactory("Nieuwe huisgenoot", pOptions, 1);
+			
+		Factories.menuButtonFactory("Interne verhuizing", pOptions, 2);
+
+		Factories.menuButtonFactory("Extra turfers", pOptions, 3)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "tempTally");
+				}
+			});	
 		
-		JButton bInternMove = new JButton("Interne verhuizing");
-		bInternMove.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bInternMove = new GridBagConstraints();
-		gbc_bInternMove.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bInternMove.insets = new Insets(0, 0, 10, 0);
-		gbc_bInternMove.gridx = 0;
-		gbc_bInternMove.gridy = 2;
-		pOptions.add(bInternMove, gbc_bInternMove);
+		Factories.menuButtonFactory("Nieuw wachtwoord", pOptions, 4)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "newPass");
+				}
+			});
 		
-		JButton bTempTally = new JButton("Extra turfers");
-		bTempTally.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "tempTally");
-			}
-		});
-		bTempTally.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bTempTally = new GridBagConstraints();
-		gbc_bTempTally.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bTempTally.insets = new Insets(0, 0, 10, 0);
-		gbc_bTempTally.gridx = 0;
-		gbc_bTempTally.gridy = 3;
-		pOptions.add(bTempTally, gbc_bTempTally);
-				
-		JButton bNewPassword = new JButton("Nieuw wachtwoord");
-		bNewPassword.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "newPass");
-			}
-		});	
-		bNewPassword.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bNewPassword = new GridBagConstraints();
-		gbc_bNewPassword.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bNewPassword.insets = new Insets(0, 0, 10, 0);
-		gbc_bNewPassword.gridx = 0;
-		gbc_bNewPassword.gridy = 4;
-		pOptions.add(bNewPassword, gbc_bNewPassword);
+		Factories.menuButtonFactory("Quotes", pOptions, 5)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "quotes");
+				}
+			});		
 		
-		JButton bAddQuote = new JButton("Een quote toevoegen");
-		bAddQuote.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "addQuote");
-			}
-		});		
-		bAddQuote.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bAddQuote = new GridBagConstraints();
-		gbc_bAddQuote.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bAddQuote.insets = new Insets(0, 0, 10, 0);
-		gbc_bAddQuote.gridx = 0;
-		gbc_bAddQuote.gridy = 5;
-		pOptions.add(bAddQuote, gbc_bAddQuote);
-		
-		
-		JButton bOptionsBack = new JButton("Terug");
-		bOptionsBack.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "main");
-			}
-		});		
-		bOptionsBack.setPreferredSize(new Dimension(250, 80));
-		GridBagConstraints gbc_bOptionsBack = new GridBagConstraints();
-		gbc_bOptionsBack.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bOptionsBack.insets = new Insets(0, 0, 10, 0);
-		gbc_bOptionsBack.gridx = 0;
-		gbc_bOptionsBack.gridy = 6;
-		pOptions.add(bOptionsBack, gbc_bOptionsBack);	
+		Factories.menuButtonFactory("Terug", pOptions, 6)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "main");
+				}
+			});			
 	}
 
+	/**
+	 * Initialize quotes main panel
+	 */
+	private void initializeQuotesPanel() {
+		JPanel pQuotes = new JPanel();
+		pCard.add(pQuotes, "quotes");
+		pQuotes.setLayout(new GridBagLayout());
+		
+		JButton manageQuotes = Factories.menuButtonFactory("Quotes beheren", pQuotes, 0);
+		JButton manageQuotes2 = Factories.menuButtonFactory("Quotes 2", pQuotes, 1);
+	}
+	
 	/**
 	 * Initialize add quote panel
 	 */
 	private void initializeAddQuotePanel() {
 		JPanel pAddQuote = new JPanel();
+		pCard.add(pAddQuote, "addQuote");
 		pAddQuote.setLayout(new GridBagLayout());
 	}
+	
 	/**
 	 * Initialize new list panel
 	 */
@@ -698,7 +663,7 @@ public class MainGui implements ActionListener {
 		GridBagLayout gbl_pNewList = new GridBagLayout();
 		pNewList.setLayout(gbl_pNewList);
 		
-		JLabel lNewListHeader = new JLabel("Dit gaat een nieuwe lijst creÃ«eren, waardoor de vorige "
+		JLabel lNewListHeader = new JLabel("Dit gaat een nieuwe lijst creëeren, waardoor de vorige "
 				+ "lijst zal sluiten!");
 		lNewListHeader.setFont(lNewListHeader.getFont().deriveFont(24f));
 		GridBagConstraints gbc_lNewListHeader = new GridBagConstraints();
@@ -912,49 +877,30 @@ public class MainGui implements ActionListener {
 		pTempTally.setLayout(gbl_pTempTally);
 		pCard.add(pTempTally, "tempTally");
 		
-		JButton bNewTempTally = new JButton("Nieuw extra turfgroep");
+		
+		JButton bNewTempTally = Factories.menuButtonFactory("Nieuw extra turfgroep", pTempTally, 0);
 		bNewTempTally.setEnabled(false);
-		bNewTempTally.setPreferredSize(new Dimension(250, 100));
 		bNewTempTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCard, "newTempTally");
 			}
 		});	
-		GridBagConstraints gbc_bNewTempTally = new GridBagConstraints();
-		gbc_bNewTempTally.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bNewTempTally.insets = new Insets(0, 0, 10, 0);
-		gbc_bNewTempTally.gridx = 0;
-		gbc_bNewTempTally.gridy = 0;
-		pTempTally.add(bNewTempTally, gbc_bNewTempTally);
 		
-		JButton bRemoveTempTally = new JButton("Sluit een extra turfgroep");
+		JButton bRemoveTempTally = 
+				Factories.menuButtonFactory("Sluit een extra turfgroep", pTempTally, 1);
 		bRemoveTempTally.setEnabled(false);
-		bRemoveTempTally.setPreferredSize(new Dimension(250, 100));
 		bRemoveTempTally.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				cardLayout.show(pCard, "removeTempTally");
 			}
 		});	
-		GridBagConstraints gbc_bRemoveTempTally = new GridBagConstraints();
-		gbc_bRemoveTempTally.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bRemoveTempTally.insets = new Insets(0, 0, 10, 0);
-		gbc_bRemoveTempTally.gridx = 0;
-		gbc_bRemoveTempTally.gridy = 1;
-		pTempTally.add(bRemoveTempTally, gbc_bRemoveTempTally);
 		
-		JButton bTempTallyBack = new JButton("Terug");
-		bTempTallyBack.setPreferredSize(new Dimension(250, 100));
-		bTempTallyBack.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				cardLayout.show(pCard, "options");
-			}
-		});	
-		GridBagConstraints gbc_bTempTallyBack = new GridBagConstraints();
-		gbc_bTempTallyBack.fill = GridBagConstraints.HORIZONTAL;
-		gbc_bTempTallyBack.insets = new Insets(0, 0, 10, 0);
-		gbc_bTempTallyBack.gridx = 0;
-		gbc_bTempTallyBack.gridy = 2;
-		pTempTally.add(bTempTallyBack, gbc_bTempTallyBack);
+		Factories.menuButtonFactory("Terug", pTempTally, 2)
+			.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					cardLayout.show(pCard, "options");
+				}
+			});	
 		
 		pTempTally.addComponentListener(new ComponentAdapter() {
 			@Override
